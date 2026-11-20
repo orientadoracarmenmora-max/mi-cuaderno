@@ -51,6 +51,8 @@ select{font:inherit;max-width:100%;min-height:48px;padding:.45rem;border:1px sol
 :root{--petrol:#075460}
 button.voice-button,button.voice-button.primary,#settings{color:var(--petrol);background:#f2f8f8;border-color:#698b91}
 .voice-button svg{display:block;width:23px;height:23px}
+.page-end #email{background:var(--petrol);border-color:var(--petrol);gap:.65rem}
+.mail-icon{width:30px;height:30px;flex:none}
 </style>
 </head>
 <body>
@@ -79,7 +81,7 @@ button.voice-button,button.voice-button.primary,#settings{color:var(--petrol);ba
 <p class="small status" id="voice-status" role="status"></p>
 <details id="dictation-info" class="small"><summary>Ayuda con el dictado</summary>Permite el micrófono cuando te lo pida el navegador. El navegador puede usar un servicio de voz en Internet. También puedes usar el dictado del teclado de tu dispositivo en cualquiera de los dos campos.</details></div>
 <p class="small status" id="saved" role="status"></p>
-<div class="page-end"><button id="email" class="primary">✉ Enviar al profesor</button><button id="new-page">＋ Nueva actividad</button></div>
+<div class="page-end"><button id="email" class="primary"><svg class="mail-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m3 6 9 7 9-7"/></svg>Enviar al profesor</button><button id="new-page">＋ Nueva actividad</button></div>
 </section>
 <nav id="subject-tabs" aria-label="Cambiar de asignatura" hidden></nav>
 <section id="manage" hidden aria-labelledby="manage-title">
