@@ -40,6 +40,14 @@ h1,h2{font-family:'Josefin Sans',system-ui,sans-serif}
 .ring:before{width:26px;height:26px;top:0;border:4px solid #737e89;background:radial-gradient(circle at 44% 32%,#434c56,#21262d 72%);box-shadow:0 1px 2px #202b3766,inset 0 1px 3px #191c23}
 .ring:after{inset:6px 8px 5px 0;border-radius:999px;background:linear-gradient(180deg,#555d68 0%,#b5bfc9 23%,#eef1f4 39%,#9da8b4 56%,#586571 82%,#39434f 100%);box-shadow:inset 1px 0 2px #ffffff69,0 2px 3px #202b3777;transform:rotate(-3deg);transform-origin:right center}
 .field-head{display:flex;align-items:center;flex-wrap:wrap;gap:.6rem;margin-bottom:.55rem}.field-head label{margin:0}.voice-actions{gap:.4rem}.voice-button{width:48px;padding:0;font-size:1.35rem}.page-end{display:grid;justify-items:center;gap:.9rem;margin-top:1rem}.page-end #email{min-height:56px;font-size:1.2rem;padding-inline:1.4rem}
+.settings-footer{display:flex;justify-content:flex-end;margin-top:1rem}
+#settings{background:#f3f8fa;color:#233a54;min-width:48px;padding:0;font-size:1.45rem}
+#manage h1{font-size:clamp(2rem,7vw,4.2rem)}
+.notebook.settings-page{margin-right:1rem}
+.subject-entry{border:1px solid #b1bdc3;border-radius:12px;background:#fffefa;padding:.8rem}
+.subject-entry .edit-row{align-items:center}.settings-icon{display:grid;place-items:center;width:42px;height:42px;font-size:1.45rem;flex:none}.settings-icon img{width:100%;height:100%;object-fit:cover;border-radius:6px}
+.teacher-form{display:flex;align-items:end;gap:.45rem;flex-wrap:wrap;flex:2 1 290px}.teacher-form label{flex:1 1 180px;margin:0;font-size:1rem}.teacher-form input{width:100%;margin-top:.2rem}.subject-tools{margin-top:.6rem}
+select{font:inherit;max-width:100%;min-height:48px;padding:.45rem;border:1px solid var(--line);border-radius:8px;background:#fffdfa;color:inherit}
 </style>
 </head>
 <body>
@@ -49,7 +57,7 @@ h1,h2{font-family:'Josefin Sans',system-ui,sans-serif}
 <section id="cover" aria-labelledby="title">
 <header class="cover-head"><h1 id="title" tabindex="-1">Mi cuaderno</h1></header>
 <nav id="subjects" class="subjects" aria-label="Asignaturas"></nav>
-<div class="center"><button id="settings">Personalizar asignaturas</button></div>
+<footer class="settings-footer"><button id="settings" aria-label="Ajustes del cuaderno" title="Ajustes del cuaderno"><span aria-hidden="true">✱</span></button></footer>
 </section>
 <section id="page" hidden aria-labelledby="subject-title">
 <div class="bar"><button id="home">⌂ Portada</button><button id="history">Historial</button></div>
@@ -71,18 +79,26 @@ h1,h2{font-family:'Josefin Sans',system-ui,sans-serif}
 <div class="page-end"><button id="email" class="primary">✉ Enviar al profesor</button><button id="new-page">＋ Nueva actividad</button></div>
 </section>
 <nav id="subject-tabs" aria-label="Cambiar de asignatura" hidden></nav>
-</article>
-</main>
-<dialog id="manage" aria-labelledby="manage-title"><h2 id="manage-title">Personalizar asignaturas</h2><ul class="list" id="manage-list"></ul><div class="actions"><button id="add" class="primary">Añadir asignatura</button><button data-close>Cerrar</button></div></dialog>
-<dialog id="edit" aria-labelledby="edit-title"><h2 id="edit-title">Editar asignatura</h2>
+<section id="manage" hidden aria-labelledby="manage-title">
+<h1 id="manage-title" tabindex="-1">Ajustes</h1>
+<h2>Asignaturas y correos del profesorado</h2>
+<ul class="list" id="manage-list"></ul>
+<p id="manage-status" class="small status" role="status"></p>
+<button id="add" class="primary">＋ Añadir asignatura</button>
+<section id="edit" class="divider" hidden aria-labelledby="edit-title"><h2 id="edit-title">Editar asignatura</h2>
 <form id="subject-form">
 <div class="field"><label for="name">Nombre de la asignatura</label><input id="name" required maxlength="45"></div>
 <div class="field"><label for="teacher">Correo del profesor o profesora</label><input id="teacher" type="email" autocomplete="off"></div>
-<div class="field"><label for="picture">Imagen de la asignatura</label><input id="picture" type="file" accept="image/png,image/jpeg,image/webp,image/avif,image/gif"><p id="picture-info" class="small"></p><label><input type="checkbox" id="clear-picture" style="width:auto"> Usar el dibujo original</label></div>
+<div class="field"><label for="subject-icon">Dibujo de la asignatura</label><select id="subject-icon"><option value="📒">📒 Cuaderno</option><option value="📚">📚 Libros</option><option value="📐">📐 Escuadra</option><option value="🌿">🌿 Planta</option><option value="💬">💬 Conversación</option><option value="🎨">🎨 Pintura</option><option value="🌍">🌍 Mundo</option><option value="🎵">🎵 Música</option><option value="⚽">⚽ Deporte</option><option value="💻">💻 Ordenador</option></select></div>
+<div class="field"><label for="picture">Subir una imagen propia</label><input id="picture" type="file" accept="image/png,image/jpeg,image/webp,image/avif,image/gif"><p id="picture-info" class="small"></p><label><input type="checkbox" id="clear-picture" style="width:auto"> Usar el dibujo elegido en lugar de la imagen</label></div>
 <p id="edit-status" class="status small" role="status"></p>
-<div class="actions"><button type="submit" class="primary">Guardar asignatura</button><button type="button" data-close>Cancelar</button></div>
+<div class="actions"><button type="submit" class="primary">Guardar asignatura</button><button type="button" id="cancel-edit">Cancelar</button></div>
 </form>
-</dialog>
+</section>
+<footer class="divider"><a id="settings-home" class="action" href="#title">⌂ Volver a la portada</a></footer>
+</section>
+</article>
+</main>
 <dialog id="past" aria-labelledby="past-title"><h2 id="past-title">Historial</h2><ul class="list" id="past-list"></ul><div class="actions"><button data-close>Cerrar</button></div></dialog>
 <dialog id="mail" aria-labelledby="mail-title"><h2 id="mail-title">Preparar correo</h2><form id="mail-form">
 <div class="field"><label for="recipient">Correo del profesor o profesora</label><input id="recipient" type="email" required autocomplete="off"></div>
@@ -183,6 +199,8 @@ function renderTabs() {
   }
 }
 function showPage(show) {
+  $('manage').hidden = true;
+  $('book').classList.remove('settings-page');
   $('cover').hidden = show;
   $('page').hidden = !show;
   $('subject-tabs').hidden = !show;
@@ -369,9 +387,47 @@ function renderSettings() {
   $('manage-list').replaceChildren();
   data.subjects.forEach((item,index) => {
     const row = document.createElement('li');
-    row.className = 'edit-row';
+    row.className = 'subject-entry';
+    const fields = document.createElement('div');
+    fields.className = 'edit-row';
     const name = document.createElement('strong');
     name.textContent = item.name;
+    const icon = document.createElement('span');
+    icon.className = 'settings-icon';
+    icon.setAttribute('aria-hidden','true');
+    icon.textContent = item.icon;
+    if (item.image) {
+      const image = new Image();
+      image.alt = '';
+      image.src = item.image;
+      icon.replaceChildren(image);
+    }
+    const form = document.createElement('form');
+    form.className = 'teacher-form';
+    const label = document.createElement('label');
+    label.textContent = 'Correo del profesor';
+    const email = document.createElement('input');
+    email.type = 'email';
+    email.autocomplete = 'off';
+    email.value = item.email;
+    email.setAttribute('aria-label','Correo de ' + item.name);
+    label.append(email);
+    const saveEmail = document.createElement('button');
+    saveEmail.textContent = 'Guardar correo';
+    form.append(label,saveEmail);
+    form.onsubmit = event => {
+      event.preventDefault();
+      const previous = item.email;
+      item.email = email.value.trim();
+      if (save()) {
+        if (editing === item && !$('edit').hidden) $('teacher').value = item.email;
+        message('manage-status','Correo de ' + item.name + ' guardado en este navegador.');
+      }
+      else {
+        item.email = previous;
+        message('manage-status','No se ha podido guardar el correo.');
+      }
+    };
     const up = button('↑', () => moveSubject(index,-1));
     const down = button('↓', () => moveSubject(index,1));
     up.setAttribute('aria-label','Subir ' + item.name);
@@ -394,7 +450,11 @@ function renderSettings() {
       $('add').focus();
     });
     remove.setAttribute('aria-label','Eliminar ' + item.name);
-    row.append(name,edit,up,down,remove);
+    fields.append(icon,name,form);
+    const actions = document.createElement('div');
+    actions.className = 'actions subject-tools';
+    actions.append(edit,up,down,remove);
+    row.append(fields,actions);
     $('manage-list').append(row);
   });
 }
@@ -409,7 +469,7 @@ function moveSubject(index, change) {
   }
   renderSettings();
   renderCover();
-  $('manage-list').children[target].querySelector('button').focus();
+  $('manage-list').children[target].querySelector('.subject-tools button').focus();
 }
 function editSubject(item) {
   editing = item;
@@ -417,10 +477,11 @@ function editSubject(item) {
   $('edit-title').textContent = item ? 'Editar asignatura' : 'Añadir asignatura';
   $('name').value = item?.name || '';
   $('teacher').value = item?.email || '';
+  $('subject-icon').value = item?.icon || '📒';
   $('clear-picture').disabled = !item?.image;
   $('picture-info').textContent = item?.image ? 'Esta asignatura ya tiene una imagen personalizada.' : '';
   message('edit-status','');
-  $('edit').showModal();
+  $('edit').hidden = false;
   $('name').focus();
 }
 async function coverImage(file) {
@@ -450,6 +511,7 @@ $('subject-form').onsubmit = async event => {
   }
   const current = editing;
   const email = $('teacher').value.trim();
+  const icon = $('subject-icon').value || current?.icon || '📒';
   const file = $('picture').files[0];
   const submit = event.submitter;
   let image = $('clear-picture').checked ? '' : current?.image || '';
@@ -462,8 +524,8 @@ $('subject-form').onsubmit = async event => {
       }
       image = await coverImage(file);
     }
-    if (!$('edit').open || current !== editing) return;
-    const item = {...(current || {id:id(),icon:'📒',color:'#ead1a6'}),name,email,image};
+    if ($('edit').hidden || current !== editing) return;
+    const item = {...(current || {id:id(),icon:'📒',color:'#ead1a6'}),name,email,image,icon};
     const previous = data.subjects;
     data.subjects = current ? previous.map(value => value === current ? item : value) : [...previous,item];
     if (!save()) {
@@ -471,10 +533,10 @@ $('subject-form').onsubmit = async event => {
       message('edit-status','El navegador no ha podido guardar. Prueba con una imagen más pequeña.');
       return;
     }
-    $('edit').close();
+    $('edit').hidden = true;
     renderSettings();
     renderCover();
-    $('manage-list').children[data.subjects.indexOf(item)].querySelector('button').focus();
+    $('manage-list').children[data.subjects.indexOf(item)].querySelector('.subject-tools button').focus();
   } catch { message('edit-status','No se ha podido abrir esa imagen. Elige otra.'); }
   finally { submit.disabled = false; }
 };
@@ -523,7 +585,24 @@ $('copy').onclick = async () => {
     message('mail-status','Texto seleccionado. Usa la opción de copiar del dispositivo.');
   }
 };
-$('settings').onclick = () => { renderSettings(); $('manage').showModal(); };
+$('settings').onclick = () => {
+  renderSettings();
+  message('manage-status','');
+  $('edit').hidden = true;
+  $('cover').hidden = true;
+  $('manage').hidden = false;
+  $('book').classList.remove('cover');
+  $('book').classList.add('settings-page');
+  $('manage-title').focus();
+};
+$('settings-home').onclick = event => {
+  event.preventDefault();
+  showPage(false);
+};
+$('cancel-edit').onclick = () => {
+  $('edit').hidden = true;
+  $('add').focus();
+};
 $('add').onclick = () => editSubject();
 $('home').onclick = () => {
   if (!readyForNavigation()) return;
