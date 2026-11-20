@@ -112,13 +112,19 @@ button.voice-button[id^="dictate-"].audio-on::after{top:4px;right:5px;width:15px
 <nav id="subject-tabs" aria-label="Cambiar de asignatura" hidden></nav>
 <section id="manage" hidden aria-labelledby="manage-title">
 <h1 id="manage-title" tabindex="-1">Ajustes</h1>
-<h2>Asignaturas y correos del profesorado</h2>
+<form id="signature-form" class="teacher-form">
+<label for="signature">Nombre y apellidos para firmar el correo<input id="signature" maxlength="100" autocomplete="off"></label>
+<button type="submit">Guardar firma</button>
+</form>
+<p id="signature-status" class="small status" role="status"></p>
+<h2>Asignaturas y profesorado</h2>
 <ul class="list" id="manage-list"></ul>
 <p id="manage-status" class="small status" role="status"></p>
 <button id="add" class="primary">＋ Añadir asignatura</button>
 <section id="edit" class="divider" hidden aria-labelledby="edit-title"><h2 id="edit-title">Editar asignatura</h2>
 <form id="subject-form">
 <div class="field"><label for="name">Nombre de la asignatura</label><input id="name" required maxlength="45"></div>
+<div class="field"><label for="teacher-name">Nombre del profesor o profesora</label><input id="teacher-name" maxlength="100" autocomplete="off"></div>
 <div class="field"><label for="teacher">Correo del profesor o profesora</label><input id="teacher" type="email" autocomplete="off"></div>
 <div class="field"><label for="subject-icon">Dibujo de la asignatura</label><select id="subject-icon"><option value="📒">📒 Cuaderno</option><option value="📚">📚 Libros</option><option value="📐">📐 Escuadra</option><option value="🌿">🌿 Planta</option><option value="💬">💬 Conversación</option><option value="🎨">🎨 Pintura</option><option value="🌍">🌍 Mundo</option><option value="🎵">🎵 Música</option><option value="⚽">⚽ Deporte</option><option value="💻">💻 Ordenador</option></select></div>
 <div class="field"><label for="picture">Subir una imagen propia</label><input id="picture" type="file" accept="image/png,image/jpeg,image/webp,image/avif,image/gif"><p id="picture-info" class="small"></p><label><input type="checkbox" id="clear-picture" style="width:auto"> Usar el dibujo elegido en lugar de la imagen</label></div>
@@ -128,7 +134,7 @@ button.voice-button[id^="dictate-"].audio-on::after{top:4px;right:5px;width:15px
 </section>
 <section class="divider" aria-labelledby="backup-title">
 <h2 id="backup-title">Copia en Archivos</h2>
-<p class="small">Guarda una copia de tus actividades, asignaturas y correos. En el iPad, elige <strong>Guardar en Archivos</strong> y selecciona tu carpeta de iCloud Drive. Haz una copia nueva cuando quieras guardar los últimos cambios.</p>
+<p class="small">Guarda una copia de tus actividades, asignaturas, contactos y firma. En el iPad, elige <strong>Guardar en Archivos</strong> y selecciona tu carpeta de iCloud Drive. Haz una copia nueva cuando quieras guardar los últimos cambios.</p>
 <div class="actions"><button id="save-copy" class="primary">Guardar una copia</button><button id="restore-copy">Recuperar una copia</button></div>
 <input id="copy-file" type="file" accept=".txt,.json,text/plain,application/json" hidden>
 <p id="backup-status" class="small status" role="status"></p>
@@ -151,7 +157,7 @@ const starter = [
   ['lengua','Lengua','📚','#ebc9a7'],['matematicas','Matemáticas','📐','#c2d6d8'],
   ['ciencias','Ciencias','🌿','#d8dfaa'],['ingles','Inglés','💬','#e4cadf']
 ];
-let data = {subjects: starter.map(([id,name,icon,color]) => ({id,name,icon,color,email:'',image:''})), notes:[]};
+let data = {subjects: starter.map(([id,name,icon,color]) => ({id,name,icon,color,email:'',image:''})), notes:[],signature:''};
 let readError = false;
 try {
   const saved = localStorage.getItem(key);
@@ -246,7 +252,7 @@ function downloadBackup(file) {
   setTimeout(() => URL.revokeObjectURL(url), 30000);
 }
 $('save-copy').onclick = async () => {
-  const copy = JSON.stringify({format:'mi-cuaderno',version:1,subjects:data.subjects,notes:data.notes});
+  const copy = JSON.stringify({format:'mi-cuaderno',version:1,subjects:data.subjects,notes:data.notes,signature:data.signature || ''});
   const stamp = new Date().toISOString().replace(/[:.]/g,'-').slice(0,19);
   const file = new File([copy], 'Mi-cuaderno-' + stamp + '.txt', {type:'text/plain'});
   try {
@@ -271,7 +277,7 @@ function readBackup(text) {
         typeof item.color !== 'string' || !/^#[0-9a-f]{6}$/i.test(item.color) ||
         typeof item.image !== 'string' || (item.image && !/^data:image\/jpeg;base64,[a-z0-9+/=]+$/i.test(item.image))) throw new Error();
     const {id,name,email,icon,color,image} = item;
-    return {id,name,email,icon,color,image};
+    return {id,name,email,icon,color,image,teacherName:cleanMailName(item.teacherName)};
   });
   const ids = new Set(subjects.map(item => item.id));
   if (ids.size !== subjects.length) throw new Error();
@@ -284,7 +290,7 @@ function readBackup(text) {
     return {id,subject,date,prompt,answer,updated};
   });
   if (new Set(notes.map(item => item.id)).size !== notes.length) throw new Error();
-  return {subjects,notes};
+  return {subjects,notes,signature:cleanMailName(copy.signature)};
 }
 $('restore-copy').onclick = () => $('copy-file').click();
 $('copy-file').onchange = async event => {
@@ -301,17 +307,19 @@ $('copy-file').onchange = async event => {
   const incoming = new Map(copy.subjects.map(item => [item.id,item]));
   const current = new Set(data.subjects.map(item => item.id));
   const notes = new Map(data.notes.map(item => [item.id,item]));
-  const firstUse = !readError && !data.notes.length && data.subjects.length === starter.length &&
+  const firstUse = !readError && !data.signature && !data.notes.length && data.subjects.length === starter.length &&
     data.subjects.every((item,index) => {
       const [id,name,icon,color] = starter[index];
-      return item.id === id && item.name === name && item.icon === icon && item.color === color && !item.email && !item.image;
+      return item.id === id && item.name === name && item.icon === icon && item.color === color && !item.email && !item.teacherName && !item.image;
     });
   for (const item of copy.notes) if (!notes.has(item.id)) notes.set(item.id,item);
   data = firstUse ? copy : {
     subjects: [...data.subjects.map(item => ({
-      ...item,email:item.email || incoming.get(item.id)?.email || ''
+      ...item,email:item.email || incoming.get(item.id)?.email || '',
+      teacherName:item.teacherName || incoming.get(item.id)?.teacherName || ''
     })), ...copy.subjects.filter(item => !current.has(item.id))],
-    notes: [...notes.values()]
+    notes: [...notes.values()],
+    signature: data.signature || copy.signature
   };
   if (!save()) {
     data = previous;
@@ -710,6 +718,7 @@ function openHistory() {
   $('past').showModal();
 }
 function renderSettings() {
+  $('signature').value = data.signature || '';
   $('manage-list').replaceChildren();
   data.subjects.forEach((item,index) => {
     const row = document.createElement('li');
@@ -730,6 +739,14 @@ function renderSettings() {
     }
     const form = document.createElement('form');
     form.className = 'teacher-form';
+    const nameLabel = document.createElement('label');
+    nameLabel.textContent = 'Nombre del profesor o profesora';
+    const teacherName = document.createElement('input');
+    teacherName.maxLength = 100;
+    teacherName.autocomplete = 'off';
+    teacherName.value = item.teacherName || '';
+    teacherName.setAttribute('aria-label','Nombre del profesor de ' + item.name);
+    nameLabel.append(teacherName);
     const label = document.createElement('label');
     label.textContent = 'Correo del profesor';
     const email = document.createElement('input');
@@ -739,19 +756,22 @@ function renderSettings() {
     email.setAttribute('aria-label','Correo de ' + item.name);
     label.append(email);
     const saveEmail = document.createElement('button');
-    saveEmail.textContent = 'Guardar correo';
-    form.append(label,saveEmail);
+    saveEmail.textContent = 'Guardar contacto';
+    form.append(nameLabel,label,saveEmail);
     form.onsubmit = event => {
       event.preventDefault();
-      const previous = item.email;
+      const previous = {email:item.email,teacherName:item.teacherName};
       item.email = email.value.trim();
+      item.teacherName = cleanMailName(teacherName.value);
       if (save()) {
-        if (editing === item && !$('edit').hidden) $('teacher').value = item.email;
-        message('manage-status','Correo de ' + item.name + ' guardado en este navegador.');
-      }
-      else {
-        item.email = previous;
-        message('manage-status','No se ha podido guardar el correo.');
+        if (editing === item && !$('edit').hidden) {
+          $('teacher').value = item.email;
+          $('teacher-name').value = item.teacherName;
+        }
+        message('manage-status','Contacto de ' + item.name + ' guardado en este navegador.');
+      } else {
+        Object.assign(item,previous);
+        message('manage-status','No se ha podido guardar el contacto.');
       }
     };
     const up = button('↑', () => moveSubject(index,-1));
@@ -765,7 +785,7 @@ function renderSettings() {
     const remove = button('Eliminar',() => {
       if (!confirm('¿Eliminar «' + item.name + '» y todas sus actividades?')) return;
       const previous = data;
-      data = {subjects:data.subjects.filter(value => value !== item),notes:data.notes.filter(value => value.subject !== item.id)};
+      data = {...data,subjects:data.subjects.filter(value => value !== item),notes:data.notes.filter(value => value.subject !== item.id)};
       if (!save()) {
         data = previous;
         alert('El navegador no ha podido guardar el cambio.');
@@ -803,6 +823,7 @@ function editSubject(item) {
   $('edit-title').textContent = item ? 'Editar asignatura' : 'Añadir asignatura';
   $('name').value = item?.name || '';
   $('teacher').value = item?.email || '';
+  $('teacher-name').value = item?.teacherName || '';
   $('subject-icon').value = item?.icon || '📒';
   $('clear-picture').disabled = !item?.image;
   $('picture-info').textContent = item?.image ? 'Esta asignatura ya tiene una imagen personalizada.' : '';
@@ -837,6 +858,7 @@ $('subject-form').onsubmit = async event => {
   }
   const current = editing;
   const email = $('teacher').value.trim();
+  const teacherName = cleanMailName($('teacher-name').value);
   const icon = $('subject-icon').value || current?.icon || '📒';
   const file = $('picture').files[0];
   const submit = event.submitter;
@@ -851,7 +873,7 @@ $('subject-form').onsubmit = async event => {
       image = await coverImage(file);
     }
     if ($('edit').hidden || current !== editing) return;
-    const item = {...(current || {id:id(),icon:'📒',color:'#ead1a6'}),name,email,image,icon};
+    const item = {...(current || {id:id(),icon:'📒',color:'#ead1a6'}),name,email,image,icon,teacherName};
     const previous = data.subjects;
     data.subjects = current ? previous.map(value => value === current ? item : value) : [...previous,item];
     if (!save()) {
@@ -866,6 +888,29 @@ $('subject-form').onsubmit = async event => {
   } catch { message('edit-status','No se ha podido abrir esa imagen. Elige otra.'); }
   finally { submit.disabled = false; }
 };
+function cleanMailName(value) {
+  return typeof value === 'string' ? value.replace(/\s+/gu,' ').trim().slice(0,100) : '';
+}
+function activityEmail(teacher, signature, prompt, answer, time) {
+  const greeting = time.getHours() < 14 ? 'Buenos días' : 'Buenas tardes';
+  const recipient = cleanMailName(teacher);
+  const sender = cleanMailName(signature);
+  const lines = [greeting + (recipient ? ', ' + recipient : '') + ':'];
+  if (prompt.trim()) lines.push('Te adjunto el enunciado:\n\n' + prompt.trim());
+  if (answer.trim()) lines.push('Te añado mi respuesta:\n\n' + answer.trim());
+  lines.push(sender ? 'Un saludo,\n' + sender : 'Un saludo.');
+  return lines.join('\n\n');
+}
+$('signature-form').onsubmit = event => {
+  event.preventDefault();
+  const previous = data.signature;
+  data.signature = cleanMailName($('signature').value);
+  if (save()) message('signature-status','Firma guardada en este navegador.');
+  else {
+    data.signature = previous;
+    message('signature-status','No se ha podido guardar la firma.');
+  }
+};
 function prepareMail() {
   stopReading();
   if (!$('prompt').value.trim() && !$('answer').value.trim()) {
@@ -879,7 +924,7 @@ function prepareMail() {
   }
   const address = encodeURIComponent(subject.email.trim()).replace(/%40/g,'@');
   const title = encodeURIComponent('Actividad de ' + subject.name + ' · ' + prettyDate(note.date));
-  const body = encodeURIComponent('Enunciado\n' + $('prompt').value + '\n\nMi respuesta\n' + $('answer').value);
+  const body = encodeURIComponent(activityEmail(subject.teacherName,data.signature,$('prompt').value,$('answer').value,new Date()));
   $('mail-yes').href = 'mailto:' + address + '?subject=' + title + '&body=' + body;
   $('mail').showModal();
 }
@@ -893,6 +938,7 @@ $('mail-yes').onclick = () => $('mail').close();
 $('settings').onclick = () => {
   renderSettings();
   message('manage-status','');
+  message('signature-status','');
   $('edit').hidden = true;
   $('cover').hidden = true;
   $('manage').hidden = false;
