@@ -477,9 +477,33 @@ function formatPower(base, exponent, shortPower) {
   const digits = exponent ? mathAtom(exponent) : shortPower === 'cuadrado' ? '2' : '3';
   return mathAtom(base) + Array.from(digits,digit => '⁰¹²³⁴⁵⁶⁷⁸⁹'[Number(digit)]).join('');
 }
-function formatSpokenMath(text) {
-  const phrase = text.trim().toLocaleLowerCase('es-ES')
+const englishMathWords = {
+  zero:'cero',one:'uno',two:'dos',three:'tres',four:'cuatro',five:'cinco',six:'seis',seven:'siete',
+  eight:'ocho',nine:'nueve',ten:'diez', eleven:'once',twelve:'doce',thirteen:'trece',fourteen:'catorce',
+  fifteen:'quince',sixteen:'dieciséis',seventeen:'diecisiete',eighteen:'dieciocho',nineteen:'diecinueve',
+  twenty:'veinte','raised to the power of':'elevado a','to the power of':'elevado a',
+  'raised to':'elevado a','square root of':'raíz cuadrada de',squared:'al cuadrado',cubed:'al cubo',
+  'divided by':'partido por','multiplied by':'por',times:'por',over:'sobre',plus:'más',minus:'menos',
+  'is equal to':'igual',equals:'igual','equal to':'igual'
+};
+const englishMathPattern = new RegExp('\\b(?:' + Object.keys(englishMathWords).sort((a,b) => b.length - a.length).join('|') + ')\\b','gu');
+const centuryPattern = new RegExp('(?<![\\p{L}\\p{N}])siglos?\\s+(\\d{1,4}|' +
+  [...spokenNumbers].sort((a,b) => b.length - a.length).join('|') + ')(?![\\p{L}\\p{N}]|[.,]\\d)','giu');
+function formatCenturies(text) {
+  const romanDigits = [[], ['','I','II','III','IV','V','VI','VII','VIII','IX'],
+    ['','X','XX','XXX','XL','L','LX','LXX','LXXX','XC'],
+    ['','C','CC','CCC','CD','D','DC','DCC','DCCC','CM'], ['','M','MM','MMM']];
+  return text.replace(centuryPattern,(match,word) => {
+    const number = Number(mathAtom(word.toLocaleLowerCase('es-ES')));
+    if (number < 1 || number > 3999) return match;
+    const roman = Array.from(String(number).padStart(4,'0'),(digit,index) => romanDigits[4-index][Number(digit)]).join('');
+    return match.slice(0,-word.length) + roman;
+  });
+}
+function formatSpokenMath(text, language) {
+  let phrase = text.trim().toLocaleLowerCase(language)
     .replace(/[.!?…]+$/u,'').trimEnd().replace(/\s+/gu,' ');
+  if (language === 'en-GB') phrase = phrase.replace(englishMathPattern,word => englishMathWords[word]);
   const equality = phrase.match(/(?:,? (?:es )?igual(?: a)?|\s*=)$/u);
   const expression = equality ? phrase.slice(0,equality.index).trimEnd() : phrase;
   const formatted = formatMathExpression(expression);
@@ -551,10 +575,9 @@ function dictate(field) {
     recording = undefined;
     dictationButton(field,false);
     if (finalText) {
-      const formula = subject.id === 'matematicas' && input.value === expectedText
-        ? formatSpokenMath(dictatedText) : null;
+      const formula = input.value === expectedText ? formatSpokenMath(dictatedText,session.lang) : null;
       if (formula) input.value = originalText.trimEnd() + (originalText.trim() ? ' ' : '') + formula;
-      else input.value = finishDictation(input.value);
+      else input.value = finishDictation(formatCenturies(input.value));
       updateNote();
     }
     message('voice-status',status ?? (finalText ? 'Dictado terminado. Pulsa el altavoz para revisarlo.' : 'No se ha transcrito texto. Puedes volver a dictar.'));
