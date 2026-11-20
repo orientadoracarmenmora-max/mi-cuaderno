@@ -65,11 +65,12 @@ button.voice-button,button.voice-button.primary,#settings{color:var(--petrol);ba
 .settings-footer{position:absolute;right:clamp(1rem,3.4vw,2.1rem);bottom:clamp(1rem,3.4vw,2.1rem);margin:0}
 #settings{width:56px;height:56px;border-radius:50%;box-shadow:0 2px 5px #26465435}
 #settings svg{width:29px;height:29px}
-button.voice-button[id^="dictate-"]{position:relative}
-button.voice-button[id^="dictate-"]::after{content:"";position:absolute;top:5px;right:5px;width:9px;height:9px;border-radius:50%;background:#83999c;border:1px solid #3c696f}
-button.voice-button.audio-on{background:#075460;color:#fff;border-color:#075460}
-button.voice-button.audio-on svg{transform:scale(1.32)}
-button.voice-button.audio-on::after{background:#caff63;border-color:#17480a;box-shadow:0 0 0 2px #caff6366}
+button.voice-button[id^="dictate-"]{position:relative;width:54px;height:54px;flex:none}
+button.voice-button[id^="dictate-"]::after{content:"";position:absolute;top:5px;right:5px;width:11px;height:11px;border-radius:50%;background:#83999c;border:1px solid #3c696f}
+button.voice-button[id^="dictate-"].audio-on{width:72px;height:64px;background:#075460;color:#fff;border:2px solid #4b9d24;box-shadow:0 0 0 3px #9fdd73}
+button.voice-button[id^="dictate-"].audio-on svg{width:35px;height:35px}
+button.voice-button[id^="dictate-"].audio-on::after{top:4px;right:5px;width:15px;height:15px;background:#caff63;border:2px solid #17480a;box-shadow:0 0 0 2px #caff63}
+.voice-actions{gap:.7rem}
 #voice-status:not(:empty){margin:.25rem 0 .45rem}
 #voice-status:empty{min-height:0;margin:0}
 </style>
