@@ -452,6 +452,8 @@ const spokenNumbers = [
 const spokenNumber = '(?:\\d+|' + spokenNumbers.join('|') + ')';
 const spokenAtom = '(?:' + spokenNumber + '|equis|ye|zeta|[xyz])';
 const spokenPower = '(' + spokenAtom + ') (?:elevad[oa] a(?: la)? (' + spokenNumber + ')|al (cuadrado|cubo))';
+const factorPowerPattern = new RegExp('^' + spokenPower + '$','u');
+const factorAtomPattern = new RegExp('^' + spokenAtom + '$','u');
 const powerPattern = new RegExp('^' + spokenPower + '(?: (más|menos) (' + spokenAtom + '))?$','u');
 const addOperator = '(más|menos)';
 const divideOperator = '(?:partid[oa] (?:por|entre)|dividid[oa] (?:por|entre)|sobre)';
@@ -465,15 +467,32 @@ function mathAtom(word) {
   if (position !== -1) return String(position);
   return {equis:'x',ye:'y',zeta:'z'}[word] || word;
 }
+function formatPower(base, exponent, shortPower) {
+  const digits = exponent ? mathAtom(exponent) : shortPower === 'cuadrado' ? '2' : '3';
+  return mathAtom(base) + Array.from(digits,digit => '⁰¹²³⁴⁵⁶⁷⁸⁹'[Number(digit)]).join('');
+}
 function formatSpokenMath(text) {
   const phrase = text.trim().toLocaleLowerCase('es-ES')
-    .replace(/(?:[.!?…])+$/u,'').trimEnd().replace(/\s+/gu,' ');
+    .replace(/[.!?…]+$/u,'').trimEnd().replace(/\s+/gu,' ');
+  const equality = phrase.match(/(?:,? (?:es )?igual(?: a)?|\s*=)$/u);
+  const expression = equality ? phrase.slice(0,equality.index).trimEnd() : phrase;
+  const formatted = formatMathExpression(expression);
+  return formatted && equality ? formatted + ' =' : formatted;
+}
+function formatMathExpression(phrase) {
   const power = phrase.match(powerPattern);
   if (power) {
     const [, base, exponent, shortPower, operator, right] = power;
-    const digits = exponent ? mathAtom(exponent) : shortPower === 'cuadrado' ? '2' : '3';
-    const superscript = Array.from(digits,digit => '⁰¹²³⁴⁵⁶⁷⁸⁹'[Number(digit)]).join('');
-    return mathAtom(base) + superscript + (operator ? mathOperator(operator) + mathAtom(right) : '');
+    return formatPower(base,exponent,shortPower) + (operator ? mathOperator(operator) + mathAtom(right) : '');
+  }
+  const factors = phrase.split(/(?: (?:multiplicad[oa] por|por|x) |\s*[×*]\s*)/u);
+  if (factors.length > 1) {
+    const formatted = factors.map(factor => {
+      const match = factor.match(factorPowerPattern);
+      if (match) return formatPower(...match.slice(1));
+      return factorAtomPattern.test(factor) ? mathAtom(factor) : null;
+    });
+    if (formatted.every(Boolean)) return formatted.join(' × ');
   }
   const fraction = phrase.match(fractionPattern);
   if (fraction) {
