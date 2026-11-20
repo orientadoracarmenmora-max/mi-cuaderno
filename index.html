@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mi cuaderno</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;500;600;700&display=swap">
 <style>
 :root{color-scheme:light;--ink:#262c28;--green:#25493b;--paper:#fbf7ed;--line:#81786b}
 *{box-sizing:border-box}body{margin:0;color:var(--ink);font:1.125rem/1.5 system-ui,sans-serif;background:radial-gradient(ellipse at 44% 3%,#f4e8d6,#d8c1a7);min-height:100vh}button,input,textarea{font:inherit}button,a.action{display:inline-flex;align-items:center;justify-content:center;gap:.4em;min-height:48px;border-radius:10px;padding:.5rem .9rem;border:1px solid var(--line);background:#fffdf8;color:var(--ink);cursor:pointer;font-weight:650;text-decoration:none}button.primary,a.primary{background:var(--green);border-color:var(--green);color:white}button:hover,a.action:hover{filter:brightness(.94)}button:disabled{opacity:.55;cursor:default}:focus-visible{outline:3px solid #86401f;outline-offset:4px}[hidden]{display:none!important}
@@ -31,6 +32,13 @@ body{background:#f7f6f3}
 .tab-subject{display:flex;justify-content:flex-start;min-width:0;text-align:left;overflow-wrap:anywhere;font-size:1rem;padding:.45rem;line-height:1.25;border-radius:0 12px 12px 0;background:#506d91;color:white;border:1px solid #405b7c;box-shadow:1px 2px 3px #273a4936}
 .tab-subject[aria-current=true]{background:#fffefa;color:#233a54;border:2px solid #6183a0}.tab-subject:focus-visible{outline-offset:-4px;outline-color:#723718}.tab-subject:not([aria-current=true]):focus-visible{outline-color:white}.tab-subject{min-height:48px}.tab-icon{flex:none;font-size:1.25rem}.tab-icon img{display:block;width:24px;height:24px;border-radius:3px;object-fit:cover}
 @media(max-width:550px){.desk{padding-right:1rem}.notebook{padding-left:2rem}.notebook.cover{margin-right:.7rem;min-height:570px}.notebook:not(.cover){margin-right:89px}.notebook:not(.cover) h1{font-size:clamp(1.65rem,7vw,2.4rem)}#subject-tabs{width:101px}.tab-subject{flex-direction:column;justify-content:center;text-align:center;padding:.35rem;font-size:.81rem}.binding{left:-11px}}
+body{font-family:'Josefin Sans',system-ui,sans-serif}
+h1,h2{font-family:'Josefin Sans',system-ui,sans-serif}
+.cover-head h1{margin-bottom:0}
+.binding{grid-auto-rows:clamp(38px,5vw,51px);width:clamp(40px,6.5vw,67px)}
+.ring{height:26px}
+.ring:before{width:26px;height:26px;top:0;border:4px solid #737e89;background:radial-gradient(circle at 44% 32%,#434c56,#21262d 72%);box-shadow:0 1px 2px #202b3766,inset 0 1px 3px #191c23}
+.ring:after{inset:6px 8px 5px 0;border-radius:999px;background:linear-gradient(180deg,#555d68 0%,#b5bfc9 23%,#eef1f4 39%,#9da8b4 56%,#586571 82%,#39434f 100%);box-shadow:inset 1px 0 2px #ffffff69,0 2px 3px #202b3777;transform:rotate(-3deg);transform-origin:right center}
 </style>
 </head>
 <body>
@@ -38,7 +46,7 @@ body{background:#f7f6f3}
 <article class="notebook cover" id="book">
 <div class="binding" aria-hidden="true" id="binding"></div>
 <section id="cover" aria-labelledby="title">
-<header class="cover-head"><h1 id="title" tabindex="-1">Mi cuaderno</h1><p>Elige una asignatura</p></header>
+<header class="cover-head"><h1 id="title" tabindex="-1">Mi cuaderno</h1></header>
 <nav id="subjects" class="subjects" aria-label="Asignaturas"></nav>
 <div class="center"><button id="settings">Personalizar asignaturas</button></div>
 </section>
