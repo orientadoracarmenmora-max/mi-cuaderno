@@ -444,7 +444,13 @@ const spokenNumber = '(?:\\d+|' + spokenNumbers.join('|') + ')';
 const spokenAtom = '(?:' + spokenNumber + '|equis|ye|zeta|[xyz])';
 const spokenPower = '(' + spokenAtom + ') (?:elevad[oa] a(?: la)? (' + spokenNumber + ')|al (cuadrado|cubo))';
 const powerPattern = new RegExp('^' + spokenPower + '(?: (más|menos) (' + spokenAtom + '))?$','u');
-const fractionPattern = new RegExp('^(' + spokenAtom + ') (?:partid[oa] (?:por|entre)|dividid[oa] (?:por|entre)|sobre) (' + spokenAtom + ')$','u');
+const addOperator = '(más|menos)';
+const divideOperator = '(?:partid[oa] (?:por|entre)|dividid[oa] (?:por|entre)|sobre)';
+const fractionPattern = new RegExp('^(?:(' + spokenAtom + ') ' + addOperator + ' )?(' + spokenAtom +
+  ') ' + divideOperator + ' (' + spokenAtom + ')(?: ' + addOperator + ' (' + spokenAtom + '))?$','u');
+function mathOperator(word) {
+  return word === 'más' ? ' + ' : ' − ';
+}
 function mathAtom(word) {
   const position = spokenNumbers.indexOf(word);
   if (position !== -1) return String(position);
@@ -458,10 +464,16 @@ function formatSpokenMath(text) {
     const [, base, exponent, shortPower, operator, right] = power;
     const digits = exponent ? mathAtom(exponent) : shortPower === 'cuadrado' ? '2' : '3';
     const superscript = Array.from(digits,digit => '⁰¹²³⁴⁵⁶⁷⁸⁹'[Number(digit)]).join('');
-    return mathAtom(base) + superscript + (operator ? (operator === 'más' ? ' + ' : ' − ') + mathAtom(right) : '');
+    return mathAtom(base) + superscript + (operator ? mathOperator(operator) + mathAtom(right) : '');
   }
   const fraction = phrase.match(fractionPattern);
-  if (fraction && Number(mathAtom(fraction[2])) !== 0) return mathAtom(fraction[1]) + '/' + mathAtom(fraction[2]);
+  if (fraction) {
+    const [, left, before, numerator, denominator, after, right] = fraction;
+    if (Number(mathAtom(denominator)) === 0) return null;
+    return (left ? mathAtom(left) + mathOperator(before) : '') +
+      mathAtom(numerator) + '/' + mathAtom(denominator) +
+      (right ? mathOperator(after) + mathAtom(right) : '');
+  }
   return null;
 }
 
