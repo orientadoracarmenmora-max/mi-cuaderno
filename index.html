@@ -354,17 +354,19 @@ function stopReading() {
 }
 function stopVoice(abort) {
   stopReading();
-  if (!recording) return;
-  if (abort) {
-    const active = recording;
-    recording = undefined;
-    active.abort();
-    dictationButton(active.field,false);
-  } else recording.stop();
+  const session = recording;
+  if (!session || session.phase === 'finishing') return;
+  if (abort || session.phase === 'opening') {
+    session.finish(abort ? '' : 'Apertura del micrófono cancelada.');
+    session.abort();
+    return;
+  }
+  session.waitForResult();
+  session.stop();
 }
 function read(field, control) {
   if (recording) {
-    message('voice-status','Pulsa el cuadrado para terminar el dictado antes de escuchar.');
+    message('voice-status','Espera a que termine el dictado antes de escuchar.');
     return;
   }
   const same = utterance?.control === control;
@@ -426,6 +428,11 @@ function appendDictation(previous, transcript) {
   const separator = previous && !/\s$/u.test(previous) ? ' ' : '';
   return capitalizeSentences(previous + separator + transcript);
 }
+function finishDictation(text) {
+  const trimmed = capitalizeSentences(text.trimEnd());
+  if (!trimmed || /[.!?…][»”’"'\])}]*$/u.test(trimmed)) return trimmed;
+  return trimmed.replace(/[,;:]+$/u,'') + '.';
+}
 function dictate(field) {
   if (recording) {
     if (recording.field === field) stopVoice(false);
@@ -433,59 +440,83 @@ function dictate(field) {
     return;
   }
   stopReading();
+  const input = $(field);
+  input.before($('voice-status'));
   if (!recognitionClass) {
     message('voice-status','Prueba el dictado del teclado en este campo.');
-    $(field).focus();
+    input.focus();
     return;
   }
   const session = new recognitionClass();
   session.field = field;
+  session.phase = 'opening';
   session.lang = 'es-ES';
   session.continuous = true;
   session.interimResults = false;
   let finalText = false;
-  let error = false;
-  session.onstart = () => {
-    if (recording === session) message('voice-status','Te escucho. Habla y pulsa el cuadrado al acabar.');
+  let timer;
+  session.finish = status => {
+    if (recording !== session) return;
+    clearTimeout(timer);
+    recording = undefined;
+    dictationButton(field,false);
+    if (finalText) {
+      input.value = finishDictation(input.value);
+      updateNote();
+    }
+    message('voice-status',status ?? (finalText ? 'Dictado terminado. Pulsa el altavoz para revisarlo.' : 'No se ha transcrito texto. Puedes volver a dictar.'));
   };
+  const expire = status => {
+    session.finish(status);
+    session.abort();
+  };
+  session.waitForResult = () => {
+    if (recording !== session || session.phase === 'finishing') return;
+    session.phase = 'finishing';
+    dictationButton(field,false);
+    message('voice-status','Terminando el dictado…');
+    clearTimeout(timer);
+    timer = setTimeout(() => expire(finalText ? 'Dictado terminado.' : 'No se ha transcrito texto. Puedes volver a dictar.'),8000);
+  };
+  const listening = () => {
+    if (recording !== session || session.phase !== 'opening') return;
+    clearTimeout(timer);
+    session.phase = 'listening';
+    dictationButton(field,true);
+    message('voice-status','Ya puedes hablar. Pulsa el cuadrado al terminar.');
+  };
+  session.onaudiostart = listening;
+  session.onspeechstart = listening;
+  session.onaudioend = session.waitForResult;
   session.onresult = event => {
     if (recording !== session) return;
+    listening();
     for (let i = event.resultIndex; i < event.results.length; i++) {
       if (!event.results[i].isFinal) continue;
       const text = event.results[i][0].transcript.trim();
       if (!text) continue;
-      const input = $(field);
       input.value = appendDictation(input.value,text);
       finalText = true;
       updateNote();
     }
   };
   session.onerror = event => {
-    if (recording !== session) return;
-    error = true;
     const errors = {
       'not-allowed':'Permite el micrófono o usa el dictado del teclado.',
       'audio-capture':'No se encuentra el micrófono.',
       'no-speech':'No se ha oído nada. Puedes volver a intentarlo.',
       'network':'El servicio de dictado no responde. Prueba el dictado del teclado.'
     };
-    message('voice-status',errors[event.error] || 'No se ha podido iniciar el dictado. Prueba el dictado del teclado.');
+    session.finish(errors[event.error] || 'No se ha podido completar el dictado. Prueba el dictado del teclado.');
   };
-  session.onend = () => {
-    if (recording !== session) return;
-    recording = undefined;
-    dictationButton(field,false);
-    if (!error) message('voice-status',finalText ? 'Pulsa el altavoz para revisar el texto.' : 'Puedes volver a dictar.');
-  };
+  session.onend = () => session.finish();
   try {
     recording = session;
+    message('voice-status','Abriendo el micrófono. Espera a que cambie de color.');
+    timer = setTimeout(() => expire('El micrófono no está listo. Revisa el permiso y vuelve a pulsarlo.'),15000);
     session.start();
-    dictationButton(field,true);
-    message('voice-status','Abriendo el micrófono…');
   } catch {
-    recording = undefined;
-    dictationButton(field,false);
-    message('voice-status','El micrófono no se ha abierto. Prueba el dictado del teclado.');
+    session.finish('El micrófono no se ha abierto. Prueba el dictado del teclado.');
   }
 }
 function prettyDate(value) {
@@ -688,7 +719,7 @@ function prepareMail() {
 }
 function readyForNavigation() {
   if (!recording) return true;
-  message('voice-status','Pulsa el cuadrado y espera a que aparezca el texto.');
+  message('voice-status','Termina el dictado y espera a que aparezca el texto.');
   $('dictate-' + recording.field).focus();
   return false;
 }
