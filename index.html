@@ -48,6 +48,9 @@ h1,h2{font-family:'Josefin Sans',system-ui,sans-serif}
 .subject-entry .edit-row{align-items:center}.settings-icon{display:grid;place-items:center;width:42px;height:42px;font-size:1.45rem;flex:none}.settings-icon img{width:100%;height:100%;object-fit:cover;border-radius:6px}
 .teacher-form{display:flex;align-items:end;gap:.45rem;flex-wrap:wrap;flex:2 1 290px}.teacher-form label{flex:1 1 180px;margin:0;font-size:1rem}.teacher-form input{width:100%;margin-top:.2rem}.subject-tools{margin-top:.6rem}
 select{font:inherit;max-width:100%;min-height:48px;padding:.45rem;border:1px solid var(--line);border-radius:8px;background:#fffdfa;color:inherit}
+:root{--petrol:#075460}
+button.voice-button,button.voice-button.primary,#settings{color:var(--petrol);background:#f2f8f8;border-color:#698b91}
+.voice-button svg{display:block;width:23px;height:23px}
 </style>
 </head>
 <body>
@@ -65,13 +68,13 @@ select{font:inherit;max-width:100%;min-height:48px;padding:.45rem;border:1px sol
 <div class="field"><label for="date">Fecha</label><input type="date" id="date" required></div>
 <div class="field"><div class="field-head"><label for="prompt">Enunciado</label>
 <div class="actions voice-actions">
-<button id="dictate-prompt" class="voice-button primary" aria-label="Dictar enunciado" title="Dictar enunciado" aria-pressed="false"><span aria-hidden="true">🎙</span></button>
-<button id="read-prompt" class="voice-button" aria-label="Escuchar enunciado" title="Escuchar enunciado"><span aria-hidden="true">🔊</span></button></div></div>
+<button id="dictate-prompt" class="voice-button primary" aria-label="Dictar enunciado" title="Dictar enunciado" aria-pressed="false"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11v1a7 7 0 0 0 14 0v-1M12 19v3m-3 0h6"/></svg></span></button>
+<button id="read-prompt" class="voice-button" aria-label="Escuchar enunciado" title="Escuchar enunciado"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m11 5-5 4H3v6h3l5 4zm4 4a4 4 0 0 1 0 6m3-9a8 8 0 0 1 0 12"/></svg></span></button></div></div>
 <textarea id="prompt" spellcheck="true"></textarea></div>
 <div class="field"><div class="field-head"><label for="answer">Mi respuesta</label>
 <div class="actions voice-actions">
-<button id="dictate-answer" class="voice-button primary" aria-label="Dictar respuesta" title="Dictar respuesta" aria-pressed="false"><span aria-hidden="true">🎙</span></button>
-<button id="read-answer" class="voice-button" aria-label="Escuchar respuesta" title="Escuchar respuesta"><span aria-hidden="true">🔊</span></button></div></div>
+<button id="dictate-answer" class="voice-button primary" aria-label="Dictar respuesta" title="Dictar respuesta" aria-pressed="false"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11v1a7 7 0 0 0 14 0v-1M12 19v3m-3 0h6"/></svg></span></button>
+<button id="read-answer" class="voice-button" aria-label="Escuchar respuesta" title="Escuchar respuesta"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m11 5-5 4H3v6h3l5 4zm4 4a4 4 0 0 1 0 6m3-9a8 8 0 0 1 0 12"/></svg></span></button></div></div>
 <textarea id="answer" spellcheck="true"></textarea>
 <p class="small status" id="voice-status" role="status"></p>
 <details id="dictation-info" class="small"><summary>Ayuda con el dictado</summary>Permite el micrófono cuando te lo pida el navegador. El navegador puede usar un servicio de voz en Internet. También puedes usar el dictado del teclado de tu dispositivo en cualquiera de los dos campos.</details></div>
@@ -273,7 +276,11 @@ function read(field, control) {
   speech.lang = 'es-ES';
   speech.rate = .88;
   const voices = speechSynthesis.getVoices();
-  speech.voice = voices.find(voice => voice.lang === 'es-ES') || voices.find(voice => voice.lang.startsWith('es')) || null;
+  speech.voice = voices.find(voice => /^google\b/i.test(voice.name) && voice.lang === 'es-ES')
+    || voices.find(voice => /^google\b/i.test(voice.name) && voice.lang.startsWith('es'))
+    || voices.find(voice => voice.lang === 'es-ES')
+    || voices.find(voice => voice.lang.startsWith('es')) || null;
+  if (speech.voice) speech.lang = speech.voice.lang;
   speech.onend = () => { if (utterance === speech) stopReading(); };
   speech.onerror = () => {
     if (utterance !== speech) return;
@@ -285,9 +292,10 @@ function read(field, control) {
   speechSynthesis.speak(speech);
 }
 const fieldName = field => field === 'prompt' ? 'enunciado' : 'respuesta';
+const voiceIcons = {"🎙": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><rect x=\"9\" y=\"3\" width=\"6\" height=\"12\" rx=\"3\"/><path d=\"M5 11v1a7 7 0 0 0 14 0v-1M12 19v3m-3 0h6\"/></svg>", "🔊": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m11 5-5 4H3v6h3l5 4zm4 4a4 4 0 0 1 0 6m3-9a8 8 0 0 1 0 12\"/></svg>", "■": "<svg viewBox=\"0 0 24 24\" fill=\"currentColor\"><rect x=\"6\" y=\"6\" width=\"12\" height=\"12\" rx=\"2\"/></svg>"};
 function voiceButton(control, icon, label) {
   const element = $(control);
-  element.firstElementChild.textContent = icon;
+  element.firstElementChild.innerHTML = voiceIcons[icon];
   element.setAttribute('aria-label',label);
   element.title = label;
 }
