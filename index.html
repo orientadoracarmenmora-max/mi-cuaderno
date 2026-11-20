@@ -15,7 +15,7 @@
 .cover-head{text-align:center;margin:0 auto 1.8rem;max-width:570px;padding:1.25rem .65rem 1.35rem;background:#fbf4df;border:1px solid #89795c;border-radius:5px;box-shadow:0 3px 7px #2f442c32,inset 0 0 0 6px #fbf4df,inset 0 0 0 7px #ad9b78}h1,h2,h3,p{margin-top:0}h1{font:700 clamp(2.25rem,8vw,5rem)/1.02 Georgia,serif;margin-bottom:.55rem}h2{font:700 1.65rem/1.2 Georgia,serif;margin-bottom:1rem}.cover-head p{margin:0;color:#3f4d41;font-weight:650}
 .subjects{display:flex;flex-wrap:wrap;justify-content:center;gap:1rem;margin:0 auto 2rem}.subject{display:grid;justify-items:center;align-content:start;width:clamp(120px,24vw,170px);padding:.55rem;border:1px solid #847a62;background:#faf4e4;box-shadow:2px 4px 0 #4a523641;border-radius:4px 10px 10px 4px;overflow-wrap:anywhere}.tile{display:grid;place-items:center;overflow:hidden;width:100%;height:98px;border-radius:4px;background:var(--tile,#ead1a6);font-size:2.7rem}.tile img{width:100%;height:100%;object-fit:cover}.center{text-align:center}
 .bar,.actions{display:flex;gap:.55rem;flex-wrap:wrap;align-items:center}.bar{justify-content:space-between;margin-bottom:1.5rem}.field{margin-bottom:1.3rem}label{display:block;font-weight:700;margin-bottom:.35rem}input,textarea{color:inherit;border:1px solid var(--line);border-radius:8px;background:#fffdfa;padding:.65rem;max-width:100%}textarea{display:block;width:100%;resize:vertical;line-height:1.75;min-height:7rem;background-image:repeating-linear-gradient(to bottom,transparent 0 calc(1.75em - 1px),#d8d2c6 calc(1.75em - 1px) 1.75em);background-origin:content-box;margin-bottom:.65rem}#answer{min-height:10rem}.small{font-size:1rem;color:#44473e}.status{min-height:1.5em;margin:.55rem 0}.list{display:grid;gap:.65rem;margin:1rem 0;padding:0;list-style:none}.list button{justify-content:flex-start;text-align:left;overflow-wrap:anywhere}.list li{min-width:0}.edit-row{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}.edit-row strong{flex:1 1 125px;overflow-wrap:anywhere}.divider{border-top:1px solid #ab9d84;padding-top:1rem;margin-top:1.25rem}
-dialog{width:min(92vw,610px);max-height:90vh;overflow:auto;padding:clamp(1rem,4vw,2rem);border:1px solid #746852;border-radius:14px;background:var(--paper);color:var(--ink)}dialog::backdrop{background:#201c15a8}dialog input:not([type=date]){width:100%}#subject-title{overflow-wrap:anywhere}.audio-on{background:#8b301f!important;color:white!important}
+dialog{width:min(92vw,610px);max-height:90vh;overflow:auto;padding:clamp(1rem,4vw,2rem);border:1px solid #746852;border-radius:14px;background:var(--paper);color:var(--ink)}dialog::backdrop{background:#201c15a8}dialog input:not([type=date]){width:100%}#subject-title{overflow-wrap:anywhere}
 @media(max-width:480px){.notebook{min-height:0}.cover-head{margin-bottom:1rem}.subjects{gap:.6rem}.subject{width:min(100%,145px);flex:1 1 112px}.tile{height:75px}.bar{margin-bottom:1rem}.desk{padding-left:1.1rem}}
 @media(prefers-reduced-motion:no-preference){.turn{animation:turn .27s ease-out}@keyframes turn{from{opacity:.5;transform:translateX(5px)}to{opacity:1;transform:none}}}
 
@@ -65,6 +65,14 @@ button.voice-button,button.voice-button.primary,#settings{color:var(--petrol);ba
 .settings-footer{position:absolute;right:clamp(1rem,3.4vw,2.1rem);bottom:clamp(1rem,3.4vw,2.1rem);margin:0}
 #settings{width:56px;height:56px;border-radius:50%;box-shadow:0 2px 5px #26465435}
 #settings svg{width:29px;height:29px}
+button.voice-button[id^="dictate-"]{position:relative}
+button.voice-button[id^="dictate-"]::after{content:"";position:absolute;top:5px;right:5px;width:9px;height:9px;border-radius:50%;background:#83999c;border:1px solid #3c696f}
+button.voice-button.audio-on{background:#075460;color:#fff;border-color:#075460}
+button.voice-button.audio-on svg{transform:scale(1.32)}
+button.voice-button.audio-on::after{background:#caff63;border-color:#17480a;box-shadow:0 0 0 2px #caff6366}
+#voice-status:not(:empty){margin:.25rem 0 .45rem}
+#voice-status:empty{min-height:0;margin:0}
+.voice-ready{font-weight:700;color:#075460}
 </style>
 </head>
 <body>
@@ -415,8 +423,9 @@ function voiceButton(control, icon, label) {
 }
 function dictationButton(field, active) {
   const control = 'dictate-' + field;
-  voiceButton(control,active ? '■' : '🎙',(active ? 'Terminar dictado de ' : 'Dictar ') + fieldName(field));
+  voiceButton(control,'🎙',(active ? 'Terminar dictado de ' : 'Dictar ') + fieldName(field));
   $(control).classList.toggle('audio-on',active);
+  $('voice-status').classList.toggle('voice-ready',active);
   $(control).setAttribute('aria-pressed',String(active));
 }
 function capitalizeSentences(text) {
@@ -483,7 +492,7 @@ function dictate(field) {
     clearTimeout(timer);
     session.phase = 'listening';
     dictationButton(field,true);
-    message('voice-status','Ya puedes hablar. Pulsa el cuadrado al terminar.');
+    message('voice-status','Ya puedes hablar. Pulsa el micrófono al terminar.');
   };
   session.onaudiostart = listening;
   session.onspeechstart = listening;
