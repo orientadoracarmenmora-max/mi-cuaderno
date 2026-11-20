@@ -112,6 +112,13 @@ button.voice-button,button.voice-button.primary,#settings{color:var(--petrol);ba
 <div class="actions"><button type="submit" class="primary">Guardar asignatura</button><button type="button" id="cancel-edit">Cancelar</button></div>
 </form>
 </section>
+<section class="divider" aria-labelledby="backup-title">
+<h2 id="backup-title">Copia en Archivos</h2>
+<p class="small">Guarda una copia de tus actividades, asignaturas y correos. En el iPad, elige <strong>Guardar en Archivos</strong> y selecciona tu carpeta de iCloud Drive. Haz una copia nueva cuando quieras guardar los últimos cambios.</p>
+<div class="actions"><button id="save-copy" class="primary">Guardar una copia</button><button id="restore-copy">Recuperar una copia</button></div>
+<input id="copy-file" type="file" accept=".txt,.json,text/plain,application/json" hidden>
+<p id="backup-status" class="small status" role="status"></p>
+</section>
 <footer class="divider"><a id="settings-home" class="action" href="#title">⌂ Volver a la portada</a></footer>
 </section>
 </article>
@@ -215,6 +222,95 @@ function renderTabs() {
     $('subject-tabs').append(tab);
   }
 }
+function downloadBackup(file) {
+  const url = URL.createObjectURL(file);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = file.name;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+}
+$('save-copy').onclick = async () => {
+  const copy = JSON.stringify({format:'mi-cuaderno',version:1,subjects:data.subjects,notes:data.notes});
+  const stamp = new Date().toISOString().replace(/[:.]/g,'-').slice(0,19);
+  const file = new File([copy], 'Mi-cuaderno-' + stamp + '.txt', {type:'text/plain'});
+  try {
+    if (navigator.canShare?.({files:[file]})) {
+      await navigator.share({files:[file]});
+      message('backup-status','Comprueba la copia en la carpeta que elegiste.');
+      return;
+    }
+  } catch (error) {
+    if (error.name === 'AbortError') return;
+  }
+  downloadBackup(file);
+  message('backup-status','Copia descargada. Puedes moverla desde Descargas a tu carpeta de iCloud Drive.');
+};
+function readBackup(text) {
+  const copy = JSON.parse(text);
+  if (copy?.format !== 'mi-cuaderno' || copy.version !== 1 ||
+      !Array.isArray(copy.subjects) || !Array.isArray(copy.notes)) throw new Error();
+  const subjects = copy.subjects.map(item => {
+    if (typeof item?.id !== 'string' || !item.id || typeof item.name !== 'string' || !item.name.trim() ||
+        typeof item.email !== 'string' || typeof item.icon !== 'string' ||
+        typeof item.color !== 'string' || !/^#[0-9a-f]{6}$/i.test(item.color) ||
+        typeof item.image !== 'string' || (item.image && !/^data:image\/jpeg;base64,[a-z0-9+/=]+$/i.test(item.image))) throw new Error();
+    const {id,name,email,icon,color,image} = item;
+    return {id,name,email,icon,color,image};
+  });
+  const ids = new Set(subjects.map(item => item.id));
+  if (ids.size !== subjects.length) throw new Error();
+  const notes = copy.notes.map(item => {
+    if (typeof item?.id !== 'string' || !item.id || !ids.has(item.subject) ||
+        typeof item.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(item.date) ||
+        !Number.isFinite(Date.parse(item.date)) || typeof item.prompt !== 'string' ||
+        typeof item.answer !== 'string' || !Number.isFinite(item.updated)) throw new Error();
+    const {id,subject,date,prompt,answer,updated} = item;
+    return {id,subject,date,prompt,answer,updated};
+  });
+  if (new Set(notes.map(item => item.id)).size !== notes.length) throw new Error();
+  return {subjects,notes};
+}
+$('restore-copy').onclick = () => $('copy-file').click();
+$('copy-file').onchange = async event => {
+  const file = event.target.files[0];
+  event.target.value = '';
+  if (!file) return;
+  let copy;
+  try { copy = readBackup(await file.text()); }
+  catch {
+    message('backup-status','No se ha podido leer esa copia de Mi cuaderno.');
+    return;
+  }
+  const previous = data;
+  const incoming = new Map(copy.subjects.map(item => [item.id,item]));
+  const current = new Set(data.subjects.map(item => item.id));
+  const notes = new Map(data.notes.map(item => [item.id,item]));
+  const firstUse = !readError && !data.notes.length && data.subjects.length === starter.length &&
+    data.subjects.every((item,index) => {
+      const [id,name,icon,color] = starter[index];
+      return item.id === id && item.name === name && item.icon === icon && item.color === color && !item.email && !item.image;
+    });
+  for (const item of copy.notes) if (!notes.has(item.id)) notes.set(item.id,item);
+  data = firstUse ? copy : {
+    subjects: [...data.subjects.map(item => ({
+      ...item,email:item.email || incoming.get(item.id)?.email || ''
+    })), ...copy.subjects.filter(item => !current.has(item.id))],
+    notes: [...notes.values()]
+  };
+  if (!save()) {
+    data = previous;
+    message('backup-status','No hay espacio para guardar la copia en este navegador.');
+    return;
+  }
+  $('edit').hidden = true;
+  renderCover();
+  renderSettings();
+  message('backup-status','Copia recuperada. Se han conservado las actividades que ya estaban en este cuaderno.');
+};
+
 function showPage(show) {
   $('manage').hidden = true;
   $('book').classList.remove('settings-page');
