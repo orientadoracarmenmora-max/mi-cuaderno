@@ -14,7 +14,7 @@
 .binding{position:absolute;inset:28px auto 25px -13px;width:clamp(28px,5vw,48px);overflow:hidden;display:grid;grid-auto-rows:35px;pointer-events:none}.ring{height:13px;margin-top:9px;position:relative}.ring:before{content:"";width:15px;height:15px;position:absolute;right:0;top:-1px;background:#302c26;border-radius:4px;box-shadow:inset 0 2px 4px black,0 0 0 1px #e3dac3}.ring:after{content:"";position:absolute;inset:1px 4px 1px 0;border-radius:60% 20% 25% 65%;background:linear-gradient(#332e28,#9a9688 18%,#f9f6ec 36%,#595549 58%,#242221 85%);box-shadow:0 3px 3px #24191063}
 .cover-head{text-align:center;margin:0 auto 1.8rem;max-width:570px;padding:1.25rem .65rem 1.35rem;background:#fbf4df;border:1px solid #89795c;border-radius:5px;box-shadow:0 3px 7px #2f442c32,inset 0 0 0 6px #fbf4df,inset 0 0 0 7px #ad9b78}h1,h2,h3,p{margin-top:0}h1{font:700 clamp(2.25rem,8vw,5rem)/1.02 Georgia,serif;margin-bottom:.55rem}h2{font:700 1.65rem/1.2 Georgia,serif;margin-bottom:1rem}.cover-head p{margin:0;color:#3f4d41;font-weight:650}
 .subjects{display:flex;flex-wrap:wrap;justify-content:center;gap:1rem;margin:0 auto 2rem}.subject{display:grid;justify-items:center;align-content:start;width:clamp(120px,24vw,170px);padding:.55rem;border:1px solid #847a62;background:#faf4e4;box-shadow:2px 4px 0 #4a523641;border-radius:4px 10px 10px 4px;overflow-wrap:anywhere}.tile{display:grid;place-items:center;overflow:hidden;width:100%;height:98px;border-radius:4px;background:var(--tile,#ead1a6);font-size:2.7rem}.tile img{width:100%;height:100%;object-fit:cover}.center{text-align:center}
-.bar,.actions{display:flex;gap:.55rem;flex-wrap:wrap;align-items:center}.bar{justify-content:space-between;margin-bottom:1.5rem}.field{margin-bottom:1.3rem}label{display:block;font-weight:700;margin-bottom:.35rem}input,textarea{color:inherit;border:1px solid var(--line);border-radius:8px;background:#fffdfa;padding:.65rem;max-width:100%}textarea{display:block;width:100%;resize:vertical;line-height:1.75;min-height:7rem;background-image:repeating-linear-gradient(to bottom,transparent 0 calc(1.75em - 1px),#d8d2c6 calc(1.75em - 1px) 1.75em);background-origin:content-box;margin-bottom:.65rem}#answer{min-height:10rem}.small{font-size:1rem;color:#44473e}.status{min-height:1.5em;margin:.55rem 0}.list{display:grid;gap:.65rem;margin:1rem 0;padding:0;list-style:none}.list button{justify-content:flex-start;text-align:left;overflow-wrap:anywhere}.list li{min-width:0}.edit-row{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}.edit-row strong{flex:1 1 125px;overflow-wrap:anywhere}.preview{white-space:pre-wrap;overflow-wrap:anywhere;background:#fffdfa;padding:.8rem;border:1px solid var(--line);border-radius:8px}.divider{border-top:1px solid #ab9d84;padding-top:1rem;margin-top:1.25rem}
+.bar,.actions{display:flex;gap:.55rem;flex-wrap:wrap;align-items:center}.bar{justify-content:space-between;margin-bottom:1.5rem}.field{margin-bottom:1.3rem}label{display:block;font-weight:700;margin-bottom:.35rem}input,textarea{color:inherit;border:1px solid var(--line);border-radius:8px;background:#fffdfa;padding:.65rem;max-width:100%}textarea{display:block;width:100%;resize:vertical;line-height:1.75;min-height:7rem;background-image:repeating-linear-gradient(to bottom,transparent 0 calc(1.75em - 1px),#d8d2c6 calc(1.75em - 1px) 1.75em);background-origin:content-box;margin-bottom:.65rem}#answer{min-height:10rem}.small{font-size:1rem;color:#44473e}.status{min-height:1.5em;margin:.55rem 0}.list{display:grid;gap:.65rem;margin:1rem 0;padding:0;list-style:none}.list button{justify-content:flex-start;text-align:left;overflow-wrap:anywhere}.list li{min-width:0}.edit-row{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}.edit-row strong{flex:1 1 125px;overflow-wrap:anywhere}.divider{border-top:1px solid #ab9d84;padding-top:1rem;margin-top:1.25rem}
 dialog{width:min(92vw,610px);max-height:90vh;overflow:auto;padding:clamp(1rem,4vw,2rem);border:1px solid #746852;border-radius:14px;background:var(--paper);color:var(--ink)}dialog::backdrop{background:#201c15a8}dialog input:not([type=date]){width:100%}#subject-title{overflow-wrap:anywhere}.audio-on{background:#8b301f!important;color:white!important}
 @media(max-width:480px){.notebook{min-height:0}.cover-head{margin-bottom:1rem}.subjects{gap:.6rem}.subject{width:min(100%,145px);flex:1 1 112px}.tile{height:75px}.bar{margin-bottom:1rem}.desk{padding-left:1.1rem}}
 @media(prefers-reduced-motion:no-preference){.turn{animation:turn .27s ease-out}@keyframes turn{from{opacity:.5;transform:translateX(5px)}to{opacity:1;transform:none}}}
@@ -39,7 +39,7 @@ h1,h2{font-family:'Josefin Sans',system-ui,sans-serif}
 .ring{height:26px}
 .ring:before{width:26px;height:26px;top:0;border:4px solid #737e89;background:radial-gradient(circle at 44% 32%,#434c56,#21262d 72%);box-shadow:0 1px 2px #202b3766,inset 0 1px 3px #191c23}
 .ring:after{inset:6px 8px 5px 0;border-radius:999px;background:linear-gradient(180deg,#555d68 0%,#b5bfc9 23%,#eef1f4 39%,#9da8b4 56%,#586571 82%,#39434f 100%);box-shadow:inset 1px 0 2px #ffffff69,0 2px 3px #202b3777;transform:rotate(-3deg);transform-origin:right center}
-.field-head{display:flex;align-items:center;flex-wrap:wrap;gap:.6rem;margin-bottom:.55rem}.field-head label{margin:0}.voice-actions{gap:.4rem}.voice-button{width:48px;padding:0;font-size:1.35rem}.page-end{display:grid;justify-items:center;gap:.9rem;margin-top:1rem}.page-end #email{min-height:56px;font-size:1.2rem;padding-inline:1.4rem}
+.field-head{display:flex;align-items:center;flex-wrap:wrap;gap:.6rem;margin-bottom:.55rem}.field-head label{margin:0}.voice-actions{gap:.4rem}.voice-button{width:48px;padding:0;font-size:1.35rem}.page-end{display:grid;justify-items:center;gap:.9rem;margin-top:1rem}.page-end #email{width:64px;min-height:56px;padding:0}
 .settings-footer{display:flex;justify-content:flex-end;margin-top:1rem}
 #settings{background:#f3f8fa;color:#233a54;min-width:48px;padding:0;font-size:1.45rem}
 #manage h1{font-size:clamp(2rem,7vw,4.2rem)}
@@ -93,7 +93,7 @@ button.voice-button,button.voice-button.primary,#settings{color:var(--petrol);ba
 <p class="small status" id="voice-status" role="status"></p>
 <details id="dictation-info" class="small"><summary>Ayuda con el dictado</summary>Permite el micrófono cuando te lo pida el navegador. El navegador puede usar un servicio de voz en Internet. También puedes usar el dictado del teclado de tu dispositivo en cualquiera de los dos campos.</details></div>
 <p class="small status" id="saved" role="status"></p>
-<div class="page-end"><button id="email" class="primary"><svg class="mail-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m3 6 9 7 9-7"/></svg>¿Enviamos la actividad al profesor/a?</button><button id="new-page">＋ Nueva actividad</button></div>
+<div class="page-end"><button id="email" class="primary" aria-label="Enviar la actividad al profesor" title="Enviar la actividad al profesor"><svg class="mail-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m3 6 9 7 9-7"/></svg></button><button id="new-page">＋ Nueva actividad</button></div>
 </section>
 <nav id="subject-tabs" aria-label="Cambiar de asignatura" hidden></nav>
 <section id="manage" hidden aria-labelledby="manage-title">
@@ -124,12 +124,11 @@ button.voice-button,button.voice-button.primary,#settings{color:var(--petrol);ba
 </article>
 </main>
 <dialog id="past" aria-labelledby="past-title"><h2 id="past-title">Historial</h2><ul class="list" id="past-list"></ul><div class="actions"><button data-close>Cerrar</button></div></dialog>
-<dialog id="mail" aria-labelledby="mail-title"><h2 id="mail-title">¿Enviamos la actividad al profesor/a?</h2><form id="mail-form">
-<div class="field"><label for="recipient">Correo del profesor o profesora</label><input id="recipient" type="email" required autocomplete="off"></div>
-<p id="mail-subject"></p><pre class="preview" id="mail-body"></pre>
-<div class="actions"><button class="primary">Abrir en mi correo</button><button type="button" id="copy">Copiar actividad</button><button type="button" data-close>Cerrar</button></div>
-<p class="small status" id="mail-status" role="status"></p>
-</form></dialog>
+<dialog id="mail" aria-labelledby="mail-title">
+<h2 id="mail-title">¿Estás seguro de que enviamos la actividad al profesor?</h2>
+<p class="small">El mensaje se abrirá listo para enviar en tu aplicación de correo.</p>
+<div class="actions"><a class="action primary" id="mail-yes" href="#">Sí</a><button type="button" data-close autofocus>No</button></div>
+</dialog>
 <script>
 'use strict';
 const $ = id => document.getElementById(id);
@@ -677,10 +676,14 @@ function prepareMail() {
     $('prompt').focus();
     return;
   }
-  $('recipient').value = subject.email;
-  $('mail-subject').textContent = 'Actividad de ' + subject.name + ' · ' + prettyDate(note.date);
-  $('mail-body').textContent = 'Enunciado\n' + $('prompt').value + '\n\nMi respuesta\n' + $('answer').value;
-  message('mail-status','Revisa la actividad antes de abrir tu correo.');
+  if (!subject.email.trim()) {
+    message('saved','Guarda el correo de ' + subject.name + ' en Ajustes antes de enviar.');
+    return;
+  }
+  const address = encodeURIComponent(subject.email.trim()).replace(/%40/g,'@');
+  const title = encodeURIComponent('Actividad de ' + subject.name + ' · ' + prettyDate(note.date));
+  const body = encodeURIComponent('Enunciado\n' + $('prompt').value + '\n\nMi respuesta\n' + $('answer').value);
+  $('mail-yes').href = 'mailto:' + address + '?subject=' + title + '&body=' + body;
   $('mail').showModal();
 }
 function readyForNavigation() {
@@ -689,32 +692,7 @@ function readyForNavigation() {
   $('dictate-' + recording.field).focus();
   return false;
 }
-$('mail-form').onsubmit = event => {
-  event.preventDefault();
-  const email = $('recipient').value.trim();
-  const prior = subject.email;
-  subject.email = email;
-  const remembered = save();
-  if (!remembered) subject.email = prior;
-  const title = encodeURIComponent($('mail-subject').textContent);
-  const body = encodeURIComponent($('mail-body').textContent);
-  location.href = 'mailto:' + encodeURIComponent(email).replace(/%40/g,'@') + '?subject=' + title + '&body=' + body;
-  message('mail-status', remembered ? 'Envía el mensaje desde tu correo. Si no se abre, usa «Copiar actividad».' : 'El correo del profesor no se ha podido guardar en este navegador.');
-};
-$('copy').onclick = async () => {
-  const content = $('mail-subject').textContent + '\n\n' + $('mail-body').textContent;
-  try {
-    await navigator.clipboard.writeText(content);
-    message('mail-status','Actividad copiada.');
-  } catch {
-    const range = document.createRange();
-    range.selectNodeContents($('mail-body'));
-    const selection = getSelection();
-    selection.removeAllRanges();
-    selection.addRange(range);
-    message('mail-status','Texto seleccionado. Usa la opción de copiar del dispositivo.');
-  }
-};
+$('mail-yes').onclick = () => $('mail').close();
 $('settings').onclick = () => {
   renderSettings();
   message('manage-status','');
