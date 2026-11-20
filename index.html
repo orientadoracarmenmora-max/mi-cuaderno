@@ -284,17 +284,19 @@ function read(field, control) {
     message('voice-status','Este navegador no ofrece lectura en voz alta.');
     return;
   }
+  const spanishGoogleVoices = speechSynthesis.getVoices().filter(voice =>
+    /^google\b/i.test(voice.name) && /^es(?:-|$)/i.test(voice.lang));
+  const voice = spanishGoogleVoices.find(option => option.lang.toLowerCase() === 'es-es') || spanishGoogleVoices[0];
+  if (!voice) {
+    message('voice-status','La voz de Google en español no está disponible. Abre el cuaderno en Google Chrome y vuelve a pulsar el altavoz.');
+    return;
+  }
   message('voice-status','');
   const speech = new SpeechSynthesisUtterance($(field).value);
   speech.control = control;
-  speech.lang = 'es-ES';
+  speech.voice = voice;
+  speech.lang = voice.lang;
   speech.rate = .88;
-  const voices = speechSynthesis.getVoices();
-  speech.voice = voices.find(voice => /^google\b/i.test(voice.name) && voice.lang === 'es-ES')
-    || voices.find(voice => /^google\b/i.test(voice.name) && voice.lang.startsWith('es'))
-    || voices.find(voice => voice.lang === 'es-ES')
-    || voices.find(voice => voice.lang.startsWith('es')) || null;
-  if (speech.voice) speech.lang = speech.voice.lang;
   speech.onend = () => { if (utterance === speech) stopReading(); };
   speech.onerror = () => {
     if (utterance !== speech) return;
@@ -651,6 +653,7 @@ for (let i = 0; i < 300; i++) {
   ring.className = 'ring';
   $('binding').append(ring);
 }
+window.speechSynthesis?.getVoices();
 renderCover();
 </script>
 </body>
