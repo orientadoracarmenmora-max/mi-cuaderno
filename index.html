@@ -337,6 +337,7 @@ function openNote(entry) {
   note = entry || {id:id(),subject:subject.id,date:today(),prompt:'',answer:'',updated:Date.now()};
   $('subject-title').textContent = subject.name;
   $('date').value = note.date;
+  $('prompt').lang = $('answer').lang = subjectLanguage();
   $('prompt').value = note.prompt;
   $('answer').value = note.answer;
   message('voice-status','');
@@ -372,6 +373,9 @@ function stopVoice(abort) {
   session.waitForResult();
   session.stop();
 }
+function subjectLanguage() {
+  return subject.id === 'ingles' ? 'en-GB' : 'es-ES';
+}
 function read(field, control) {
   if (recording) {
     message('voice-status','Espera a que termine el dictado antes de escuchar.');
@@ -389,12 +393,17 @@ function read(field, control) {
     message('voice-status','Este navegador no ofrece lectura en voz alta.');
     return;
   }
-  const spanishVoices = speechSynthesis.getVoices().filter(voice => voice.lang.toLowerCase() === 'es-es');
-  const voice = spanishVoices.find(option => /^google\b/i.test(option.name))
-    || spanishVoices.find(option => option.default)
-    || spanishVoices[0];
+  const language = subjectLanguage();
+  const voices = speechSynthesis.getVoices();
+  const matchingVoices = voices.filter(voice => voice.lang.toLowerCase() === language.toLowerCase());
+  const choices = matchingVoices.length || language === 'es-ES' ? matchingVoices :
+    voices.filter(voice => /^en(?:-|$)/i.test(voice.lang));
+  const voice = choices.find(option => /^google\b/i.test(option.name))
+    || choices.find(option => option.default)
+    || choices[0];
   if (!voice) {
-    message('voice-status','No hay una voz de español de España disponible en este navegador. Prueba en Google Chrome o revisa las voces de tu dispositivo.');
+    const name = language === 'en-GB' ? 'inglés' : 'español de España';
+    message('voice-status','No hay una voz de ' + name + ' disponible en este navegador. Prueba en Google Chrome o revisa las voces de tu dispositivo.');
     return;
   }
   message('voice-status','');
@@ -499,7 +508,7 @@ function dictate(field) {
   const session = new recognitionClass();
   session.field = field;
   session.phase = 'opening';
-  session.lang = 'es-ES';
+  session.lang = subjectLanguage();
   session.continuous = true;
   session.interimResults = false;
   let finalText = false;
