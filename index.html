@@ -73,6 +73,10 @@ button.voice-button[id^="dictate-"].audio-on::after{top:4px;right:5px;width:15px
 .voice-actions{gap:.7rem}
 #voice-status:not(:empty){margin:.25rem 0 .45rem}
 #voice-status:empty{min-height:0;margin:0}
+.formula-preview{margin:.25rem 0 .65rem;padding:.45rem .75rem;border-left:3px solid var(--petrol);background:#f2f8f8;white-space:pre-wrap;overflow-wrap:anywhere}
+.stacked-fraction{display:inline-grid;grid-template-rows:auto auto;vertical-align:middle;text-align:center;line-height:1.15;margin-inline:.13em}
+.stacked-fraction span{padding:.12em .25em}
+.stacked-fraction span:first-child{border-bottom:1.5px solid currentColor}
 </style>
 </head>
 <body>
@@ -92,12 +96,14 @@ button.voice-button[id^="dictate-"].audio-on::after{top:4px;right:5px;width:15px
 <div class="actions voice-actions">
 <button id="dictate-prompt" class="voice-button primary" aria-label="Dictar enunciado" title="Dictar enunciado" aria-pressed="false"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11v1a7 7 0 0 0 14 0v-1M12 19v3m-3 0h6"/></svg></span></button>
 <button id="read-prompt" class="voice-button" aria-label="Escuchar enunciado" title="Escuchar enunciado"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m11 5-5 4H3v6h3l5 4zm4 4a4 4 0 0 1 0 6m3-9a8 8 0 0 1 0 12"/></svg></span></button></div></div>
-<textarea id="prompt" spellcheck="true" autocapitalize="sentences"></textarea></div>
+<textarea id="prompt" spellcheck="true" autocapitalize="sentences"></textarea>
+<div id="prompt-formula" class="formula-preview" role="group" aria-label="Fracciones de enunciado" hidden></div></div>
 <div class="field"><div class="field-head"><label for="answer">Mi respuesta</label>
 <div class="actions voice-actions">
 <button id="dictate-answer" class="voice-button primary" aria-label="Dictar respuesta" title="Dictar respuesta" aria-pressed="false"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11v1a7 7 0 0 0 14 0v-1M12 19v3m-3 0h6"/></svg></span></button>
 <button id="read-answer" class="voice-button" aria-label="Escuchar respuesta" title="Escuchar respuesta"><span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m11 5-5 4H3v6h3l5 4zm4 4a4 4 0 0 1 0 6m3-9a8 8 0 0 1 0 12"/></svg></span></button></div></div>
 <textarea id="answer" spellcheck="true" autocapitalize="sentences"></textarea>
+<div id="answer-formula" class="formula-preview" role="group" aria-label="Fracciones de respuesta" hidden></div>
 <p class="small status" id="voice-status" role="status"></p>
 </div>
 <p class="small status" id="saved" role="status"></p>
@@ -332,6 +338,32 @@ function showPage(show) {
   visible.classList.add('turn');
   $(show ? 'subject-title' : 'title').focus();
 }
+function renderFractions(field) {
+  const preview = $(field + '-formula');
+  const text = $(field).value;
+  const fractions = [...text.matchAll(/(?<![\p{L}\p{N}/])([\d]+|[xyz])\/([\d]+|[xyz])(?![\p{L}\p{N}/])/gu)];
+  preview.replaceChildren();
+  preview.hidden = !fractions.length;
+  if (!fractions.length) return;
+  let offset = 0;
+  for (const match of fractions) {
+    const [value,numerator,denominator] = match;
+    preview.append(text.slice(offset,match.index));
+    const fraction = document.createElement('span');
+    fraction.className = 'stacked-fraction';
+    fraction.setAttribute('role','math');
+    fraction.setAttribute('aria-label',numerator + ' partido por ' + denominator);
+    for (const part of [numerator,denominator]) {
+      const label = document.createElement('span');
+      label.textContent = part;
+      label.setAttribute('aria-hidden','true');
+      fraction.append(label);
+    }
+    preview.append(fraction);
+    offset = match.index + value.length;
+  }
+  preview.append(text.slice(offset));
+}
 function openNote(entry) {
   stopVoice(true);
   note = entry || {id:id(),subject:subject.id,date:today(),prompt:'',answer:'',updated:Date.now()};
@@ -340,6 +372,8 @@ function openNote(entry) {
   $('prompt').lang = $('answer').lang = subjectLanguage();
   $('prompt').value = note.prompt;
   $('answer').value = note.answer;
+  renderFractions('prompt');
+  renderFractions('answer');
   message('voice-status','');
   message('saved', entry ? 'Actividad guardada en este navegador.' : 'Los cambios se guardan en este navegador.');
   showPage(true);
@@ -349,6 +383,8 @@ function updateNote() {
   note.date = $('date').value || note.date;
   note.prompt = $('prompt').value;
   note.answer = $('answer').value;
+  renderFractions('prompt');
+  renderFractions('answer');
   note.updated = Date.now();
   const known = data.notes.includes(note);
   if (!known && !note.prompt.trim() && !note.answer.trim()) return;
@@ -465,6 +501,12 @@ const addOperator = '(más|menos)';
 const divideOperator = '(?:partid[oa] (?:por|entre)|dividid[oa] (?:por|entre)|sobre)';
 const fractionPattern = new RegExp('^(?:(' + spokenAtom + ') ' + addOperator + ' )?(' + spokenAtom +
   ') ' + divideOperator + ' (' + spokenAtom + ')(?: ' + addOperator + ' (' + spokenAtom + '))?$','u');
+const namedDenominators = {
+  medio:2,tercio:3,cuarto:4,quinto:5,sexto:6,séptimo:7,septimo:7,
+  octavo:8,noveno:9,décimo:10,decimo:10
+};
+const namedFractionPattern = new RegExp('^(un|' + spokenNumber + ') (' +
+  Object.keys(namedDenominators).join('|') + ')s?(?: (?:de|del) (' + spokenAtom + '))?$','u');
 function mathOperator(word) {
   return word === 'más' ? ' + ' : ' − ';
 }
@@ -510,6 +552,12 @@ function formatSpokenMath(text, language) {
   return formatted && equality ? formatted + ' =' : formatted;
 }
 function formatMathExpression(phrase) {
+  const namedFraction = phrase.match(namedFractionPattern);
+  if (namedFraction) {
+    const [, numerator, denominator, quantity] = namedFraction;
+    return (numerator === 'un' ? '1' : mathAtom(numerator)) + '/' + namedDenominators[denominator] +
+      (quantity ? ' · ' + mathAtom(quantity) : '');
+  }
   const power = phrase.match(powerPattern);
   if (power) {
     const [, base, exponent, shortPower, operator, right] = power;
