@@ -284,11 +284,12 @@ function read(field, control) {
     message('voice-status','Este navegador no ofrece lectura en voz alta.');
     return;
   }
-  const spanishGoogleVoices = speechSynthesis.getVoices().filter(voice =>
-    /^google\b/i.test(voice.name) && /^es(?:-|$)/i.test(voice.lang));
-  const voice = spanishGoogleVoices.find(option => option.lang.toLowerCase() === 'es-es') || spanishGoogleVoices[0];
+  const spanishVoices = speechSynthesis.getVoices().filter(voice => voice.lang.toLowerCase() === 'es-es');
+  const voice = spanishVoices.find(option => /^google\b/i.test(option.name))
+    || spanishVoices.find(option => option.default)
+    || spanishVoices[0];
   if (!voice) {
-    message('voice-status','La voz de Google en español no está disponible. Abre el cuaderno en Google Chrome y vuelve a pulsar el altavoz.');
+    message('voice-status','No hay una voz de español de España disponible en este navegador. Prueba en Google Chrome o revisa las voces de tu dispositivo.');
     return;
   }
   message('voice-status','');
