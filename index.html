@@ -453,6 +453,7 @@ const spokenNumber = '(?:\\d+|' + spokenNumbers.join('|') + ')';
 const spokenAtom = '(?:' + spokenNumber + '|equis|ye|zeta|[xyz])';
 const spokenPower = '(' + spokenAtom + ') (?:elevad[oa] a(?: la)? (' + spokenNumber + ')|al (cuadrado|cubo))';
 const factorPowerPattern = new RegExp('^' + spokenPower + '$','u');
+const rootPattern = new RegExp('^(?:la )?ra[ií]z(?: cuadrada)? de (' + spokenAtom + ')$','u');
 const factorAtomPattern = new RegExp('^' + spokenAtom + '$','u');
 const powerPattern = new RegExp('^' + spokenPower + '(?: (más|menos) (' + spokenAtom + '))?$','u');
 const addOperator = '(más|menos)';
@@ -485,14 +486,18 @@ function formatMathExpression(phrase) {
     const [, base, exponent, shortPower, operator, right] = power;
     return formatPower(base,exponent,shortPower) + (operator ? mathOperator(operator) + mathAtom(right) : '');
   }
-  const factors = phrase.split(/(?: (?:multiplicad[oa] por|por|x) |\s*[×*]\s*)/u);
+  const root = phrase.match(rootPattern);
+  if (root) return '√' + mathAtom(root[1]);
+  const factors = phrase.split(/(?: (?:multiplicad[oa] por|por|x) |\s*[×*·]\s*)/u);
   if (factors.length > 1) {
     const formatted = factors.map(factor => {
-      const match = factor.match(factorPowerPattern);
-      if (match) return formatPower(...match.slice(1));
+      const power = factor.match(factorPowerPattern);
+      if (power) return formatPower(...power.slice(1));
+      const root = factor.match(rootPattern);
+      if (root) return '√' + mathAtom(root[1]);
       return factorAtomPattern.test(factor) ? mathAtom(factor) : null;
     });
-    if (formatted.every(Boolean)) return formatted.join(' × ');
+    if (formatted.every(Boolean)) return formatted.join(' · ');
   }
   const fraction = phrase.match(fractionPattern);
   if (fraction) {
