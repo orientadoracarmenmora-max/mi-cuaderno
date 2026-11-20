@@ -896,7 +896,7 @@ function activityEmail(teacher, signature, prompt, answer, time) {
   const recipient = cleanMailName(teacher);
   const sender = cleanMailName(signature);
   const lines = [greeting + (recipient ? ', ' + recipient : '') + ':'];
-  if (prompt.trim()) lines.push('Te adjunto el enunciado:\n\n' + prompt.trim());
+  if (prompt.trim()) lines.push('Te adjunto el enunciado de la actividad:\n\n' + prompt.trim());
   if (answer.trim()) lines.push('Te añado mi respuesta:\n\n' + answer.trim());
   lines.push(sender ? 'Un saludo,\n' + sender : 'Un saludo.');
   return lines.join('\n\n');
