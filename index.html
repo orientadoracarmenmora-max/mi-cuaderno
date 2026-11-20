@@ -447,11 +447,16 @@ function appendDictation(previous, transcript) {
 }
 const spokenNumbers = [
   'cero','uno','dos','tres','cuatro','cinco','seis','siete','ocho','nueve','diez',
-  'once','doce','trece','catorce','quince','dieciséis','diecisiete','dieciocho','diecinueve','veinte'
+  'once','doce','trece','catorce','quince','dieciséis','diecisiete','dieciocho','diecinueve','veinte',
+  'veintiuno','veintidós','veintitrés','veinticuatro','veinticinco','veintiséis','veintisiete','veintiocho','veintinueve'
 ];
+for (const tens of ['treinta','cuarenta','cincuenta','sesenta','setenta','ochenta','noventa']) {
+  spokenNumbers.push(tens);
+  for (const unit of spokenNumbers.slice(1,10)) spokenNumbers.push(tens + ' y ' + unit);
+}
 const spokenNumber = '(?:\\d+|' + spokenNumbers.join('|') + ')';
 const spokenAtom = '(?:' + spokenNumber + '|equis|ye|zeta|[xyz])';
-const spokenPower = '(' + spokenAtom + ') (?:elevad[oa] a(?: la)? (' + spokenNumber + ')|al (cuadrado|cubo))';
+const spokenPower = '(' + spokenAtom + ')(?:(?: elevad[oa] a(?: la)? | a la |\\s*\\^\\s*)(' + spokenNumber + ')| al (cuadrado|cubo))';
 const factorPowerPattern = new RegExp('^' + spokenPower + '$','u');
 const rootPattern = new RegExp('^(?:la )?ra[ií]z(?: cuadrada)? de (' + spokenAtom + ')$','u');
 const factorAtomPattern = new RegExp('^' + spokenAtom + '$','u');
