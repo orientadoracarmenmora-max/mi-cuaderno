@@ -436,6 +436,35 @@ function appendDictation(previous, transcript) {
   const separator = previous && !/\s$/u.test(previous) ? ' ' : '';
   return capitalizeSentences(previous + separator + transcript);
 }
+const spokenNumbers = [
+  'cero','uno','dos','tres','cuatro','cinco','seis','siete','ocho','nueve','diez',
+  'once','doce','trece','catorce','quince','dieciséis','diecisiete','dieciocho','diecinueve','veinte'
+];
+const spokenNumber = '(?:\\d+|' + spokenNumbers.join('|') + ')';
+const spokenAtom = '(?:' + spokenNumber + '|equis|ye|zeta|[xyz])';
+const spokenPower = '(' + spokenAtom + ') (?:elevad[oa] a(?: la)? (' + spokenNumber + ')|al (cuadrado|cubo))';
+const powerPattern = new RegExp('^' + spokenPower + '(?: (más|menos) (' + spokenAtom + '))?$','u');
+const fractionPattern = new RegExp('^(' + spokenAtom + ') (?:partid[oa] (?:por|entre)|dividid[oa] (?:por|entre)|sobre) (' + spokenAtom + ')$','u');
+function mathAtom(word) {
+  const position = spokenNumbers.indexOf(word);
+  if (position !== -1) return String(position);
+  return {equis:'x',ye:'y',zeta:'z'}[word] || word;
+}
+function formatSpokenMath(text) {
+  const phrase = text.trim().toLocaleLowerCase('es-ES')
+    .replace(/(?:[.!?…])+$/u,'').trimEnd().replace(/\s+/gu,' ');
+  const power = phrase.match(powerPattern);
+  if (power) {
+    const [, base, exponent, shortPower, operator, right] = power;
+    const digits = exponent ? mathAtom(exponent) : shortPower === 'cuadrado' ? '2' : '3';
+    const superscript = Array.from(digits,digit => '⁰¹²³⁴⁵⁶⁷⁸⁹'[Number(digit)]).join('');
+    return mathAtom(base) + superscript + (operator ? (operator === 'más' ? ' + ' : ' − ') + mathAtom(right) : '');
+  }
+  const fraction = phrase.match(fractionPattern);
+  if (fraction && Number(mathAtom(fraction[2])) !== 0) return mathAtom(fraction[1]) + '/' + mathAtom(fraction[2]);
+  return null;
+}
+
 function finishDictation(text) {
   const trimmed = capitalizeSentences(text.trimEnd());
   if (!trimmed || /[.!?…][»”’"'\])}]*$/u.test(trimmed)) return trimmed;
@@ -463,13 +492,19 @@ function dictate(field) {
   session.interimResults = false;
   let finalText = false;
   let timer;
+  const originalText = input.value;
+  let dictatedText = '';
+  let expectedText = originalText;
   session.finish = status => {
     if (recording !== session) return;
     clearTimeout(timer);
     recording = undefined;
     dictationButton(field,false);
     if (finalText) {
-      input.value = finishDictation(input.value);
+      const formula = subject.id === 'matematicas' && input.value === expectedText
+        ? formatSpokenMath(dictatedText) : null;
+      if (formula) input.value = originalText.trimEnd() + (originalText.trim() ? ' ' : '') + formula;
+      else input.value = finishDictation(input.value);
       updateNote();
     }
     message('voice-status',status ?? (finalText ? 'Dictado terminado. Pulsa el altavoz para revisarlo.' : 'No se ha transcrito texto. Puedes volver a dictar.'));
@@ -503,6 +538,8 @@ function dictate(field) {
       if (!event.results[i].isFinal) continue;
       const text = event.results[i][0].transcript.trim();
       if (!text) continue;
+      dictatedText = appendDictation(dictatedText,text);
+      expectedText = appendDictation(expectedText,text);
       input.value = appendDictation(input.value,text);
       finalText = true;
       updateNote();
