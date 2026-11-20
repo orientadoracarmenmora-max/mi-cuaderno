@@ -17,6 +17,20 @@
 dialog{width:min(92vw,610px);max-height:90vh;overflow:auto;padding:clamp(1rem,4vw,2rem);border:1px solid #746852;border-radius:14px;background:var(--paper);color:var(--ink)}dialog::backdrop{background:#201c15a8}dialog input:not([type=date]){width:100%}#subject-title{overflow-wrap:anywhere}.audio-on{background:#8b301f!important;color:white!important}
 @media(max-width:480px){.notebook{min-height:0}.cover-head{margin-bottom:1rem}.subjects{gap:.6rem}.subject{width:min(100%,145px);flex:1 1 112px}.tile{height:75px}.bar{margin-bottom:1rem}.desk{padding-left:1.1rem}}
 @media(prefers-reduced-motion:no-preference){.turn{animation:turn .27s ease-out}@keyframes turn{from{opacity:.5;transform:translateX(5px)}to{opacity:1;transform:none}}}
+
+body{background:#f7f6f3}
+.desk{max-width:1100px}
+.notebook{border-radius:clamp(24px,5vw,58px);background-color:#fffefa;border-color:#cfcbc3;box-shadow:5px 2px #fff,6px 2px #ded9d1,11px 3px #fff,12px 3px #d8d4cb,17px 4px #fff,18px 4px #c6c8c3,23px 5px #9fb9cb,27px 9px 15px #29394536}
+.notebook.cover{max-width:750px;min-height:clamp(590px,77vw,810px);margin-inline:auto;background:#9fb9cb;border-color:#8eaabd}
+.cover-head{background:none;border:0;box-shadow:none;padding:0;margin:clamp(2rem,9vw,6rem) auto clamp(1.5rem,6vw,3.4rem);color:#182f41}
+.cover-head p{color:#253b4c}.subjects{max-width:470px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(.55rem,3vw,1.4rem)}
+.subject{width:100%;min-width:0;background:#edf4f8;border-color:#526e81;box-shadow:2px 3px #324a5b48;padding:.6rem;border-radius:12px}.tile{width:100%;max-width:155px}.subject span:last-child{font-size:clamp(.96rem,3vw,1.125rem)}
+.binding{left:-13px;top:54px;bottom:45px;width:clamp(37px,6vw,62px);grid-auto-rows:48px;padding-top:4px}.ring{height:23px}.ring:before{width:25px;height:25px;border-radius:50%;top:-1px;right:0;background:#3c4249;border:4px solid #78838c;box-shadow:inset 0 1px 2px #1a2125,0 1px 2px #253b4c88}.ring:after{inset:5px 8px 5px 0;border-radius:999px;background:linear-gradient(#686e76,#dce0e3 25%,#b2b8bf 54%,#747d87 80%,#454e59);box-shadow:0 2px 3px #253b4c88}
+.notebook:not(.cover){margin-right:clamp(58px,16vw,153px);padding-right:clamp(.65rem,3vw,2.5rem)}
+#subject-tabs{position:absolute;left:100%;top:55px;display:grid;gap:7px;padding-left:13px;width:clamp(62px,15vw,144px);z-index:2;max-height:calc(100% - 105px);overflow-y:auto;scrollbar-width:thin}
+.tab-subject{display:flex;justify-content:flex-start;min-width:0;text-align:left;overflow-wrap:anywhere;font-size:1rem;padding:.45rem;line-height:1.25;border-radius:0 12px 12px 0;background:#506d91;color:white;border:1px solid #405b7c;box-shadow:1px 2px 3px #273a4936}
+.tab-subject[aria-current=true]{background:#fffefa;color:#233a54;border:2px solid #6183a0}.tab-subject:focus-visible{outline-offset:-4px;outline-color:#723718}.tab-subject:not([aria-current=true]):focus-visible{outline-color:white}.tab-subject{min-height:48px}.tab-icon{flex:none;font-size:1.25rem}.tab-icon img{display:block;width:24px;height:24px;border-radius:3px;object-fit:cover}
+@media(max-width:550px){.desk{padding-right:1rem}.notebook{padding-left:2rem}.notebook.cover{margin-right:.7rem;min-height:570px}.notebook:not(.cover){margin-right:89px}.notebook:not(.cover) h1{font-size:clamp(1.65rem,7vw,2.4rem)}#subject-tabs{width:101px}.tab-subject{flex-direction:column;justify-content:center;text-align:center;padding:.35rem;font-size:.81rem}.binding{left:-11px}}
 </style>
 </head>
 <body>
@@ -40,6 +54,7 @@ dialog{width:min(92vw,610px);max-height:90vh;overflow:auto;padding:clamp(1rem,4v
 <p class="small status" id="saved" role="status"></p>
 <div class="actions"><button id="email" class="primary">✉ Preparar correo</button><button id="new-page">Nueva actividad</button></div>
 </section>
+<nav id="subject-tabs" aria-label="Cambiar de asignatura" hidden></nav>
 </article>
 </main>
 <dialog id="manage" aria-labelledby="manage-title"><h2 id="manage-title">Personalizar asignaturas</h2><ul class="list" id="manage-list"></ul><div class="actions"><button id="add" class="primary">Añadir asignatura</button><button data-close>Cerrar</button></div></dialog>
@@ -100,12 +115,7 @@ function message(element, text) {
 function renderCover() {
   $('subjects').replaceChildren();
   for (const item of data.subjects) {
-    const card = button('', () => {
-      subject = item;
-      const recent = data.notes.filter(entry => entry.subject === item.id && entry.date === today())
-        .sort((a,b) => b.updated - a.updated)[0];
-      openNote(recent);
-    });
+    const card = button('', () => selectSubject(item));
     card.className = 'subject';
     const tile = document.createElement('span');
     tile.className = 'tile';
@@ -125,9 +135,42 @@ function renderCover() {
   }
   if (!data.subjects.length) $('subjects').textContent = 'Añade una asignatura para empezar.';
 }
+function selectSubject(item) {
+  subject = item;
+  const recent = data.notes.filter(entry => entry.subject === item.id && entry.date === today())
+    .sort((a,b) => b.updated - a.updated)[0];
+  openNote(recent);
+}
+function renderTabs() {
+  $('subject-tabs').replaceChildren();
+  for (const item of data.subjects) {
+    const tab = button('', () => {
+      if (item !== subject && readyForNavigation()) selectSubject(item);
+    });
+    tab.className = 'tab-subject';
+    if (item === subject) tab.setAttribute('aria-current','true');
+    const icon = document.createElement('span');
+    icon.className = 'tab-icon';
+    icon.setAttribute('aria-hidden','true');
+    icon.textContent = item.icon;
+    if (item.image) {
+      const image = new Image();
+      image.alt = '';
+      image.src = item.image;
+      icon.replaceChildren(image);
+    }
+    const name = document.createElement('span');
+    name.className = 'tab-name';
+    name.textContent = item.name;
+    tab.append(icon,name);
+    $('subject-tabs').append(tab);
+  }
+}
 function showPage(show) {
   $('cover').hidden = show;
   $('page').hidden = !show;
+  $('subject-tabs').hidden = !show;
+  if (show) renderTabs();
   $('book').classList.toggle('cover', !show);
   const visible = $(show ? 'page' : 'cover');
   visible.classList.remove('turn');
