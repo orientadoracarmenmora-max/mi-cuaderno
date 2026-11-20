@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mi cuaderno</title>
+<style>
+:root{color-scheme:light;--ink:#262c28;--green:#25493b;--paper:#fbf7ed;--line:#81786b}
+*{box-sizing:border-box}body{margin:0;color:var(--ink);font:1.125rem/1.5 system-ui,sans-serif;background:radial-gradient(ellipse at 44% 3%,#f4e8d6,#d8c1a7);min-height:100vh}button,input,textarea{font:inherit}button,a.action{display:inline-flex;align-items:center;justify-content:center;gap:.4em;min-height:48px;border-radius:10px;padding:.5rem .9rem;border:1px solid var(--line);background:#fffdf8;color:var(--ink);cursor:pointer;font-weight:650;text-decoration:none}button.primary,a.primary{background:var(--green);border-color:var(--green);color:white}button:hover,a.action:hover{filter:brightness(.94)}button:disabled{opacity:.55;cursor:default}:focus-visible{outline:3px solid #86401f;outline-offset:4px}[hidden]{display:none!important}
+.desk{max-width:1020px;margin:auto;padding:clamp(1.2rem,5vw,3.8rem) clamp(1rem,4vw,2.5rem)}
+.notebook{position:relative;min-height:620px;border-radius:9px 25px 23px 9px;padding:clamp(1.4rem,4vw,3.3rem) clamp(1rem,5vw,4.4rem) clamp(1.4rem,4vw,3rem) clamp(2.3rem,7vw,5.4rem);background-color:var(--paper);background-image:repeating-linear-gradient(0deg,#4f412a06 0 1px,transparent 1px 4px),linear-gradient(90deg,#65513627,transparent 8%,transparent 96%,#65431918);border:1px solid #a99b80;box-shadow:2px 4px #fcf8ed,4px 7px #ae9e83,5px 10px #f7f0df,7px 13px #5a4937,14px 25px 35px #4a301f48;isolation:isolate}
+.notebook.cover{background-color:#c8d2bb;border-color:#728375;background-image:repeating-linear-gradient(42deg,#182d2012 0 1px,transparent 1px 4px),repeating-linear-gradient(130deg,#ffffff26 0 1px,transparent 1px 4px),linear-gradient(95deg,#263b3673,transparent 8%,transparent 94%,#3d523848)}
+.binding{position:absolute;inset:28px auto 25px -13px;width:clamp(28px,5vw,48px);overflow:hidden;display:grid;grid-auto-rows:35px;pointer-events:none}.ring{height:13px;margin-top:9px;position:relative}.ring:before{content:"";width:15px;height:15px;position:absolute;right:0;top:-1px;background:#302c26;border-radius:4px;box-shadow:inset 0 2px 4px black,0 0 0 1px #e3dac3}.ring:after{content:"";position:absolute;inset:1px 4px 1px 0;border-radius:60% 20% 25% 65%;background:linear-gradient(#332e28,#9a9688 18%,#f9f6ec 36%,#595549 58%,#242221 85%);box-shadow:0 3px 3px #24191063}
+.cover-head{text-align:center;margin:0 auto 1.8rem;max-width:570px;padding:1.25rem .65rem 1.35rem;background:#fbf4df;border:1px solid #89795c;border-radius:5px;box-shadow:0 3px 7px #2f442c32,inset 0 0 0 6px #fbf4df,inset 0 0 0 7px #ad9b78}h1,h2,h3,p{margin-top:0}h1{font:700 clamp(2.25rem,8vw,5rem)/1.02 Georgia,serif;margin-bottom:.55rem}h2{font:700 1.65rem/1.2 Georgia,serif;margin-bottom:1rem}.cover-head p{margin:0;color:#3f4d41;font-weight:650}
+.subjects{display:flex;flex-wrap:wrap;justify-content:center;gap:1rem;margin:0 auto 2rem}.subject{display:grid;justify-items:center;align-content:start;width:clamp(120px,24vw,170px);padding:.55rem;border:1px solid #847a62;background:#faf4e4;box-shadow:2px 4px 0 #4a523641;border-radius:4px 10px 10px 4px;overflow-wrap:anywhere}.tile{display:grid;place-items:center;overflow:hidden;width:100%;height:98px;border-radius:4px;background:var(--tile,#ead1a6);font-size:2.7rem}.tile img{width:100%;height:100%;object-fit:cover}.center{text-align:center}
+.bar,.actions{display:flex;gap:.55rem;flex-wrap:wrap;align-items:center}.bar{justify-content:space-between;margin-bottom:1.5rem}.field{margin-bottom:1.3rem}label{display:block;font-weight:700;margin-bottom:.35rem}input,textarea{color:inherit;border:1px solid var(--line);border-radius:8px;background:#fffdfa;padding:.65rem;max-width:100%}textarea{display:block;width:100%;resize:vertical;line-height:1.75;min-height:7rem;background-image:repeating-linear-gradient(to bottom,transparent 0 calc(1.75em - 1px),#d8d2c6 calc(1.75em - 1px) 1.75em);background-origin:content-box;margin-bottom:.65rem}#answer{min-height:10rem}.small{font-size:1rem;color:#44473e}.status{min-height:1.5em;margin:.55rem 0}.list{display:grid;gap:.65rem;margin:1rem 0;padding:0;list-style:none}.list button{justify-content:flex-start;text-align:left;overflow-wrap:anywhere}.list li{min-width:0}.edit-row{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}.edit-row strong{flex:1 1 125px;overflow-wrap:anywhere}.preview{white-space:pre-wrap;overflow-wrap:anywhere;background:#fffdfa;padding:.8rem;border:1px solid var(--line);border-radius:8px}.divider{border-top:1px solid #ab9d84;padding-top:1rem;margin-top:1.25rem}
+dialog{width:min(92vw,610px);max-height:90vh;overflow:auto;padding:clamp(1rem,4vw,2rem);border:1px solid #746852;border-radius:14px;background:var(--paper);color:var(--ink)}dialog::backdrop{background:#201c15a8}dialog input:not([type=date]){width:100%}#subject-title{overflow-wrap:anywhere}.audio-on{background:#8b301f!important;color:white!important}
+@media(max-width:480px){.notebook{min-height:0}.cover-head{margin-bottom:1rem}.subjects{gap:.6rem}.subject{width:min(100%,145px);flex:1 1 112px}.tile{height:75px}.bar{margin-bottom:1rem}.desk{padding-left:1.1rem}}
+@media(prefers-reduced-motion:no-preference){.turn{animation:turn .27s ease-out}@keyframes turn{from{opacity:.5;transform:translateX(5px)}to{opacity:1;transform:none}}}
+</style>
+</head>
+<body>
+<main class="desk">
+<article class="notebook cover" id="book">
+<div class="binding" aria-hidden="true" id="binding"></div>
+<section id="cover" aria-labelledby="title">
+<header class="cover-head"><h1 id="title" tabindex="-1">Mi cuaderno</h1><p>Elige una asignatura</p></header>
+<nav id="subjects" class="subjects" aria-label="Asignaturas"></nav>
+<div class="center"><button id="settings">Personalizar asignaturas</button></div>
+</section>
+<section id="page" hidden aria-labelledby="subject-title">
+<div class="bar"><button id="home">⌂ Portada</button><button id="history">Historial</button></div>
+<h1 id="subject-title" tabindex="-1"></h1>
+<div class="field"><label for="date">Fecha</label><input type="date" id="date" required></div>
+<div class="field"><label for="prompt">Enunciado</label><textarea id="prompt" spellcheck="true"></textarea><button id="read-prompt">🔊 Escuchar enunciado</button></div>
+<div class="field"><label for="answer">Mi respuesta</label><textarea id="answer" spellcheck="true"></textarea>
+<div class="actions"><button id="dictate" class="primary" aria-pressed="false" aria-describedby="dictation-info">🎙 Dictar respuesta</button><button id="read-answer">🔊 Escuchar respuesta</button></div>
+<p class="small status" id="voice-status" role="status"></p>
+<details id="dictation-info" class="small"><summary>Ayuda con el dictado</summary>Permite el micrófono cuando te lo pida el navegador. El navegador puede usar un servicio de voz en Internet. También puedes usar el dictado del teclado de tu dispositivo en «Mi respuesta».</details></div>
+<p class="small status" id="saved" role="status"></p>
+<div class="actions"><button id="email" class="primary">✉ Preparar correo</button><button id="new-page">Nueva actividad</button></div>
+</section>
+</article>
+</main>
+<dialog id="manage" aria-labelledby="manage-title"><h2 id="manage-title">Personalizar asignaturas</h2><ul class="list" id="manage-list"></ul><div class="actions"><button id="add" class="primary">Añadir asignatura</button><button data-close>Cerrar</button></div></dialog>
+<dialog id="edit" aria-labelledby="edit-title"><h2 id="edit-title">Editar asignatura</h2>
+<form id="subject-form">
+<div class="field"><label for="name">Nombre de la asignatura</label><input id="name" required maxlength="45"></div>
+<div class="field"><label for="teacher">Correo del profesor o profesora</label><input id="teacher" type="email" autocomplete="off"></div>
+<div class="field"><label for="picture">Imagen de la asignatura</label><input id="picture" type="file" accept="image/png,image/jpeg,image/webp,image/avif,image/gif"><p id="picture-info" class="small"></p><label><input type="checkbox" id="clear-picture" style="width:auto"> Usar el dibujo original</label></div>
+<p id="edit-status" class="status small" role="status"></p>
+<div class="actions"><button type="submit" class="primary">Guardar asignatura</button><button type="button" data-close>Cancelar</button></div>
+</form>
+</dialog>
+<dialog id="past" aria-labelledby="past-title"><h2 id="past-title">Historial</h2><ul class="list" id="past-list"></ul><div class="actions"><button data-close>Cerrar</button></div></dialog>
+<dialog id="mail" aria-labelledby="mail-title"><h2 id="mail-title">Preparar correo</h2><form id="mail-form">
+<div class="field"><label for="recipient">Correo del profesor o profesora</label><input id="recipient" type="email" required autocomplete="off"></div>
+<p id="mail-subject"></p><pre class="preview" id="mail-body"></pre>
+<div class="actions"><button class="primary">Abrir en mi correo</button><button type="button" id="copy">Copiar actividad</button><button type="button" data-close>Cerrar</button></div>
+<p class="small status" id="mail-status" role="status"></p>
+</form></dialog>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const key = 'mi-cuaderno-v1';
+const starter = [
+  ['lengua','Lengua','📚','#ebc9a7'],['matematicas','Matemáticas','📐','#c2d6d8'],
+  ['ciencias','Ciencias','🌿','#d8dfaa'],['ingles','Inglés','💬','#e4cadf']
+];
+let data = {subjects: starter.map(([id,name,icon,color]) => ({id,name,icon,color,email:'',image:''})), notes:[]};
+let readError = false;
+try {
+  const saved = localStorage.getItem(key);
+  if (saved) data = JSON.parse(saved);
+} catch { readError = true; }
+let subject, note, editing, recording, utterance;
+const recognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+const dateFormat = new Intl.DateTimeFormat('es-ES',{dateStyle:'long'});
+const today = () => {
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  return now.toISOString().slice(0,10);
+};
+const id = () => globalThis.crypto?.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2);
+function save() {
+  if (readError) return false;
+  try { localStorage.setItem(key, JSON.stringify(data)); return true; }
+  catch { return false; }
+}
+function button(label, action) {
+  const element = document.createElement('button');
+  element.type = 'button';
+  element.textContent = label;
+  element.onclick = action;
+  return element;
+}
+function message(element, text) {
+  if ($(element).textContent !== text) $(element).textContent = text;
+}
+function renderCover() {
+  $('subjects').replaceChildren();
+  for (const item of data.subjects) {
+    const card = button('', () => {
+      subject = item;
+      const recent = data.notes.filter(entry => entry.subject === item.id && entry.date === today())
+        .sort((a,b) => b.updated - a.updated)[0];
+      openNote(recent);
+    });
+    card.className = 'subject';
+    const tile = document.createElement('span');
+    tile.className = 'tile';
+    tile.setAttribute('aria-hidden','true');
+    tile.style.setProperty('--tile',item.color);
+    tile.textContent = item.icon;
+    if (item.image) {
+      const img = new Image();
+      img.alt = '';
+      img.src = item.image;
+      tile.replaceChildren(img);
+    }
+    const label = document.createElement('span');
+    label.textContent = item.name;
+    card.append(tile,label);
+    $('subjects').append(card);
+  }
+  if (!data.subjects.length) $('subjects').textContent = 'Añade una asignatura para empezar.';
+}
+function showPage(show) {
+  $('cover').hidden = show;
+  $('page').hidden = !show;
+  $('book').classList.toggle('cover', !show);
+  const visible = $(show ? 'page' : 'cover');
+  visible.classList.remove('turn');
+  void visible.offsetWidth;
+  visible.classList.add('turn');
+  $(show ? 'subject-title' : 'title').focus();
+}
+function openNote(entry) {
+  stopVoice(true);
+  note = entry || {id:id(),subject:subject.id,date:today(),prompt:'',answer:'',updated:Date.now()};
+  $('subject-title').textContent = subject.name;
+  $('date').value = note.date;
+  $('prompt').value = note.prompt;
+  $('answer').value = note.answer;
+  message('voice-status','');
+  message('saved', entry ? 'Actividad guardada en este navegador.' : 'Los cambios se guardan en este navegador.');
+  showPage(true);
+}
+function updateNote() {
+  if (!note) return;
+  note.date = $('date').value || note.date;
+  note.prompt = $('prompt').value;
+  note.answer = $('answer').value;
+  note.updated = Date.now();
+  const known = data.notes.includes(note);
+  if (!known && !note.prompt.trim() && !note.answer.trim()) return;
+  if (!known) data.notes.push(note);
+  message('saved', save() ? 'Actividad guardada en este navegador.' : 'No se ha podido guardar. Copia tu actividad antes de salir.');
+}
+function stopReading() {
+  if (!utterance) return;
+  utterance = undefined;
+  window.speechSynthesis?.cancel();
+  $('read-prompt').textContent = '🔊 Escuchar enunciado';
+  $('read-answer').textContent = '🔊 Escuchar respuesta';
+}
+function stopVoice(abort) {
+  stopReading();
+  if (!recording) return;
+  if (abort) {
+    const active = recording;
+    recording = undefined;
+    active.abort();
+    dictationButton(false);
+  } else recording.stop();
+}
+function read(field, control) {
+  if (recording) {
+    message('voice-status','Pulsa «Terminar dictado» antes de escuchar.');
+    return;
+  }
+  const same = utterance?.control === control;
+  stopReading();
+  if (same) return;
+  if (!$(field).value.trim()) {
+    message('voice-status', field === 'prompt' ? 'Escribe o pega el enunciado primero.' : 'Dicta o escribe una respuesta primero.');
+    $(field).focus();
+    return;
+  }
+  if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) {
+    message('voice-status','Este navegador no ofrece lectura en voz alta.');
+    return;
+  }
+  message('voice-status','');
+  const speech = new SpeechSynthesisUtterance($(field).value);
+  speech.control = control;
+  speech.lang = 'es-ES';
+  speech.rate = .88;
+  const voices = speechSynthesis.getVoices();
+  speech.voice = voices.find(voice => voice.lang === 'es-ES') || voices.find(voice => voice.lang.startsWith('es')) || null;
+  speech.onend = () => { if (utterance === speech) stopReading(); };
+  speech.onerror = () => {
+    if (utterance !== speech) return;
+    stopReading();
+    message('voice-status','No se ha podido leer el texto. Comprueba la voz del dispositivo.');
+  };
+  utterance = speech;
+  $(control).textContent = '■ Parar lectura';
+  speechSynthesis.speak(speech);
+}
+function dictationButton(active) {
+  $('dictate').textContent = active ? '■ Terminar dictado' : '🎙 Dictar respuesta';
+  $('dictate').classList.toggle('audio-on',active);
+  $('dictate').setAttribute('aria-pressed',String(active));
+}
+function dictate() {
+  if (recording) {
+    stopVoice(false);
+    return;
+  }
+  stopReading();
+  if (!recognitionClass) {
+    message('voice-status','Prueba el dictado del teclado en «Mi respuesta».');
+    $('answer').focus();
+    return;
+  }
+  const session = new recognitionClass();
+  session.lang = 'es-ES';
+  session.continuous = true;
+  session.interimResults = false;
+  let finalText = false;
+  let error = false;
+  session.onstart = () => {
+    if (recording === session) message('voice-status','Te escucho. Habla y pulsa «Terminar dictado» al acabar.');
+  };
+  session.onresult = event => {
+    if (recording !== session) return;
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      if (!event.results[i].isFinal) continue;
+      const text = event.results[i][0].transcript.trim();
+      if (!text) continue;
+      const answer = $('answer');
+      answer.value += (answer.value && !/\s$/.test(answer.value) ? ' ' : '') + text;
+      finalText = true;
+      updateNote();
+    }
+  };
+  session.onerror = event => {
+    if (recording !== session) return;
+    error = true;
+    const errors = {
+      'not-allowed':'Permite el micrófono o usa el dictado del teclado.',
+      'audio-capture':'No se encuentra el micrófono.',
+      'no-speech':'No se ha oído nada. Puedes volver a intentarlo.',
+      'network':'El servicio de dictado no responde. Prueba el dictado del teclado.'
+    };
+    message('voice-status',errors[event.error] || 'No se ha podido iniciar el dictado. Prueba el dictado del teclado.');
+  };
+  session.onend = () => {
+    if (recording !== session) return;
+    recording = undefined;
+    dictationButton(false);
+    if (!error) message('voice-status',finalText ? 'Pulsa «Escuchar respuesta» para revisarla.' : 'Puedes volver a dictar.');
+  };
+  try {
+    recording = session;
+    session.start();
+    dictationButton(true);
+    message('voice-status','Abriendo el micrófono…');
+  } catch {
+    recording = undefined;
+    dictationButton(false);
+    message('voice-status','El micrófono no se ha abierto. Prueba el dictado del teclado.');
+  }
+}
+function prettyDate(value) {
+  return dateFormat.format(new Date(value + 'T12:00:00'));
+}
+function openHistory() {
+  stopReading();
+  $('past-list').replaceChildren();
+  const entries = data.notes.filter(item => item.subject === subject.id)
+    .sort((a,b) => b.date.localeCompare(a.date) || b.updated - a.updated);
+  for (const item of entries) {
+    const row = document.createElement('li');
+    const excerpt = (item.prompt.trim() || item.answer.trim()).replace(/\s+/g,' ');
+    row.append(button(prettyDate(item.date) + ' · ' + (excerpt.length > 67 ? excerpt.slice(0,67) + '…' : excerpt || 'Actividad'), () => {
+      $('past').close();
+      openNote(item);
+    }));
+    $('past-list').append(row);
+  }
+  if (!entries.length) {
+    const row = document.createElement('li');
+    row.textContent = 'Todavía no hay actividades guardadas.';
+    $('past-list').append(row);
+  }
+  $('past').showModal();
+}
+function renderSettings() {
+  $('manage-list').replaceChildren();
+  data.subjects.forEach((item,index) => {
+    const row = document.createElement('li');
+    row.className = 'edit-row';
+    const name = document.createElement('strong');
+    name.textContent = item.name;
+    const up = button('↑', () => moveSubject(index,-1));
+    const down = button('↓', () => moveSubject(index,1));
+    up.setAttribute('aria-label','Subir ' + item.name);
+    down.setAttribute('aria-label','Bajar ' + item.name);
+    up.disabled = index === 0;
+    down.disabled = index === data.subjects.length - 1;
+    const edit = button('Editar',() => editSubject(item));
+    edit.setAttribute('aria-label','Editar ' + item.name);
+    const remove = button('Eliminar',() => {
+      if (!confirm('¿Eliminar «' + item.name + '» y todas sus actividades?')) return;
+      const previous = data;
+      data = {subjects:data.subjects.filter(value => value !== item),notes:data.notes.filter(value => value.subject !== item.id)};
+      if (!save()) {
+        data = previous;
+        alert('El navegador no ha podido guardar el cambio.');
+        return;
+      }
+      renderSettings();
+      renderCover();
+      $('add').focus();
+    });
+    remove.setAttribute('aria-label','Eliminar ' + item.name);
+    row.append(name,edit,up,down,remove);
+    $('manage-list').append(row);
+  });
+}
+function moveSubject(index, change) {
+  const target = index + change;
+  const items = data.subjects;
+  [items[index],items[target]] = [items[target],items[index]];
+  if (!save()) {
+    [items[index],items[target]] = [items[target],items[index]];
+    alert('El navegador no ha podido guardar el cambio.');
+    return;
+  }
+  renderSettings();
+  renderCover();
+  $('manage-list').children[target].querySelector('button').focus();
+}
+function editSubject(item) {
+  editing = item;
+  $('subject-form').reset();
+  $('edit-title').textContent = item ? 'Editar asignatura' : 'Añadir asignatura';
+  $('name').value = item?.name || '';
+  $('teacher').value = item?.email || '';
+  $('clear-picture').disabled = !item?.image;
+  $('picture-info').textContent = item?.image ? 'Esta asignatura ya tiene una imagen personalizada.' : '';
+  message('edit-status','');
+  $('edit').showModal();
+  $('name').focus();
+}
+async function coverImage(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const image = new Image();
+    image.src = url;
+    await image.decode();
+    const scale = Math.min(1,480 / Math.max(image.naturalWidth,image.naturalHeight));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1,Math.round(image.naturalWidth * scale));
+    canvas.height = Math.max(1,Math.round(image.naturalHeight * scale));
+    const context = canvas.getContext('2d');
+    context.fillStyle = '#fbf4df';
+    context.fillRect(0,0,canvas.width,canvas.height);
+    context.drawImage(image,0,0,canvas.width,canvas.height);
+    return canvas.toDataURL('image/jpeg',.84);
+  } finally { URL.revokeObjectURL(url); }
+}
+$('subject-form').onsubmit = async event => {
+  event.preventDefault();
+  const name = $('name').value.trim();
+  if (!name) {
+    message('edit-status','Escribe el nombre de la asignatura.');
+    $('name').focus();
+    return;
+  }
+  const current = editing;
+  const email = $('teacher').value.trim();
+  const file = $('picture').files[0];
+  const submit = event.submitter;
+  let image = $('clear-picture').checked ? '' : current?.image || '';
+  submit.disabled = true;
+  try {
+    if (file) {
+      if (!/^image\/(png|jpeg|webp|avif|gif)$/.test(file.type)) {
+        message('edit-status','Elige una imagen PNG, JPG, WebP, AVIF o GIF.');
+        return;
+      }
+      image = await coverImage(file);
+    }
+    if (!$('edit').open || current !== editing) return;
+    const item = {...(current || {id:id(),icon:'📒',color:'#ead1a6'}),name,email,image};
+    const previous = data.subjects;
+    data.subjects = current ? previous.map(value => value === current ? item : value) : [...previous,item];
+    if (!save()) {
+      data.subjects = previous;
+      message('edit-status','El navegador no ha podido guardar. Prueba con una imagen más pequeña.');
+      return;
+    }
+    $('edit').close();
+    renderSettings();
+    renderCover();
+    $('manage-list').children[data.subjects.indexOf(item)].querySelector('button').focus();
+  } catch { message('edit-status','No se ha podido abrir esa imagen. Elige otra.'); }
+  finally { submit.disabled = false; }
+};
+function prepareMail() {
+  stopReading();
+  if (!$('prompt').value.trim() && !$('answer').value.trim()) {
+    message('saved','Escribe el enunciado o la respuesta antes de preparar el correo.');
+    $('prompt').focus();
+    return;
+  }
+  $('recipient').value = subject.email;
+  $('mail-subject').textContent = 'Actividad de ' + subject.name + ' · ' + prettyDate(note.date);
+  $('mail-body').textContent = 'Enunciado\n' + $('prompt').value + '\n\nMi respuesta\n' + $('answer').value;
+  message('mail-status','Revisa la actividad antes de abrir tu correo.');
+  $('mail').showModal();
+}
+function readyForNavigation() {
+  if (!recording) return true;
+  message('voice-status','Pulsa «Terminar dictado» y espera a que aparezca tu respuesta.');
+  $('dictate').focus();
+  return false;
+}
+$('mail-form').onsubmit = event => {
+  event.preventDefault();
+  const email = $('recipient').value.trim();
+  const prior = subject.email;
+  subject.email = email;
+  const remembered = save();
+  if (!remembered) subject.email = prior;
+  const title = encodeURIComponent($('mail-subject').textContent);
+  const body = encodeURIComponent($('mail-body').textContent);
+  location.href = 'mailto:' + encodeURIComponent(email).replace(/%40/g,'@') + '?subject=' + title + '&body=' + body;
+  message('mail-status', remembered ? 'Envía el mensaje desde tu correo. Si no se abre, usa «Copiar actividad».' : 'El correo del profesor no se ha podido guardar en este navegador.');
+};
+$('copy').onclick = async () => {
+  const content = $('mail-subject').textContent + '\n\n' + $('mail-body').textContent;
+  try {
+    await navigator.clipboard.writeText(content);
+    message('mail-status','Actividad copiada.');
+  } catch {
+    const range = document.createRange();
+    range.selectNodeContents($('mail-body'));
+    const selection = getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+    message('mail-status','Texto seleccionado. Usa la opción de copiar del dispositivo.');
+  }
+};
+$('settings').onclick = () => { renderSettings(); $('manage').showModal(); };
+$('add').onclick = () => editSubject();
+$('home').onclick = () => {
+  if (!readyForNavigation()) return;
+  stopVoice(true);
+  if (!$('date').value) $('date').value = note.date;
+  showPage(false);
+};
+$('history').onclick = () => { if (readyForNavigation()) openHistory(); };
+$('new-page').onclick = () => { if (readyForNavigation()) openNote(); };
+$('email').onclick = () => { if (readyForNavigation()) prepareMail(); };
+$('read-prompt').onclick = () => read('prompt','read-prompt');
+$('read-answer').onclick = () => read('answer','read-answer');
+$('dictate').onclick = dictate;
+$('date').onchange = () => {
+  if (!$('date').value) $('date').value = note.date;
+  updateNote();
+};
+$('prompt').oninput = $('answer').oninput = updateNote;
+document.querySelectorAll('[data-close]').forEach(control => {
+  control.onclick = () => control.closest('dialog').close();
+});
+for (let i = 0; i < 300; i++) {
+  const ring = document.createElement('span');
+  ring.className = 'ring';
+  $('binding').append(ring);
+}
+renderCover();
+</script>
+</body>
+</html>
