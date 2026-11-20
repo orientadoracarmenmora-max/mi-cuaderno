@@ -72,7 +72,6 @@ button.voice-button.audio-on svg{transform:scale(1.32)}
 button.voice-button.audio-on::after{background:#caff63;border-color:#17480a;box-shadow:0 0 0 2px #caff6366}
 #voice-status:not(:empty){margin:.25rem 0 .45rem}
 #voice-status:empty{min-height:0;margin:0}
-.voice-ready{font-weight:700;color:#075460}
 </style>
 </head>
 <body>
@@ -425,7 +424,6 @@ function dictationButton(field, active) {
   const control = 'dictate-' + field;
   voiceButton(control,'🎙',(active ? 'Terminar dictado de ' : 'Dictar ') + fieldName(field));
   $(control).classList.toggle('audio-on',active);
-  $('voice-status').classList.toggle('voice-ready',active);
   $(control).setAttribute('aria-pressed',String(active));
 }
 function capitalizeSentences(text) {
@@ -492,7 +490,7 @@ function dictate(field) {
     clearTimeout(timer);
     session.phase = 'listening';
     dictationButton(field,true);
-    message('voice-status','Ya puedes hablar. Pulsa el micrófono al terminar.');
+    message('voice-status','');
   };
   session.onaudiostart = listening;
   session.onspeechstart = listening;
